@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updates >
+    <update id="TZUP-2013-001-000">
+        <location href="TZUP-2013-001-000.zip" />
+        <checksum type="sha256">3e641b8091ee9cedf9a14a80c51f395fc662e4a4d870cd84206be5b3753e2508</checksum>
+        <type>incremental</type>
+        <reboot>yes</reboot>
+        <security>no</security>
+        <standalone>no</standalone>
+        <title>Tizen 3.0.1 Update</title>
+        <version>3.0.1</version>
+
+        <description><![CDATA[
+        <p>This Update will solve all your problems</p>
+        <p>For more information, see http://updates.tizen.org</p>
+        ]]>
+        </description>
+    </update>
+</updates>
