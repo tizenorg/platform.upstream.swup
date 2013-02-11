@@ -2,7 +2,7 @@
 <updates >
     <update id="TZUP-2013-001-000">
         <location href="TZUP-2013-001-000.zip" />
-        <checksum type="sha256">3e641b8091ee9cedf9a14a80c51f395fc662e4a4d870cd84206be5b3753e2508</checksum>
+        <checksum type="sha256">8d6e9274b411008e564da76158462fedcf6c56500b3993f8c8a24083dd104b3d</checksum>
         <type>incremental</type>
         <reboot>yes</reboot>
         <security>no</security>

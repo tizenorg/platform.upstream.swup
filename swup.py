@@ -12,6 +12,7 @@ import shutil
 import sys
 import zipfile
 import rpm
+import subprocess as sub
 
 update_repo="file:///home/nashif/system-updates/repo"
 update_cache="/tmp/updates"
@@ -165,13 +166,17 @@ def prepare_update(update_data):
         
 
         ts = rpm.TransactionSet()
-        fdno = os.open("%s/downloads/%s/delta/%s" % (update_cache, u['id'], delta), os.O_RDONLY)
+        delta_location = "%s/downloads/%s/delta/%s" % (update_cache, u['id'], delta)
+        fdno = os.open(delta_location, os.O_RDONLY)
+        
         hdr = ts.hdrFromFdno(fdno)
         os.close(fdno)
         target_rpm =  "%s-%s-%s.%s.rpm" % (hdr['name'], hdr['version'], hdr['release'], hdr['arch'])
+        target_location = "%s/downloads/%s/packages/%s" % (update_cache, u['id'], target_rpm)
         version = "_%s.%s.drpm" % (hdr['release'], hdr['arch'])
-        
+        print version
         original_rpm = "%s.%s.rpm" %( delta.replace(version, ""), hdr['arch'] )
+        original_rpm = original_rpm.replace("_%s" % hdr['version'], "")
         print "   %s" %original_rpm
         print " + %s" %delta
         print " = %s" %target_rpm
@@ -182,12 +187,23 @@ def prepare_update(update_data):
         Found = False
         for r in mi:
             installed = "%s-%s-%s.%s.rpm" % (r.name, r.version, r.release, r.arch)
-            original = "%s-%s-%s.%s" % (hdr['name'], hdr['version'], hdr['release'], hdr['arch'])                
-            if installed == original:
-                found = True
+            #original = "%s-%s-%s.%s" % (hdr['name'], hdr['version'], hdr['release'], hdr['arch'])        
+            print installed
+
+            if installed == original_rpm:
+                Found = True
         if Found:
             print "Original availale, delta can be applied. Applying now..."
             # apply delta here
+            if os.path.exists("/usr/bin/applydeltarpm"):
+                if not os.path.exists(target_location):
+                    cmd = '/usr/bin/applydeltarpm %s %s' % (delta_location, target_location) 
+                    print cmd
+                    p = sub.Popen(["/usr/bin/applydeltarpm", delta_location, target_location] ,stdout=sub.PIPE,stderr=sub.PIPE)
+                    output, errors = p.communicate()
+                    print output
+                else:
+                    print "Target already exists"
         else:
             print "Error: original not available, can't apply delta. We have %s instead of %s" % (installed, original_rpm)
 
