@@ -174,7 +174,7 @@ def prepare_update(update_data):
         target_rpm =  "%s-%s-%s.%s.rpm" % (hdr['name'], hdr['version'], hdr['release'], hdr['arch'])
         target_location = "%s/downloads/%s/packages/%s" % (update_cache, u['id'], target_rpm)
         version = "_%s.%s.drpm" % (hdr['release'], hdr['arch'])
-        print version
+        #print version
         original_rpm = "%s.%s.rpm" %( delta.replace(version, ""), hdr['arch'] )
         original_rpm = original_rpm.replace("_%s" % hdr['version'], "")
         print "   %s" %original_rpm
@@ -238,6 +238,10 @@ parser.add_option("-q", "--quiet",
                   help="don't print status messages to stdout")
 
 (options, args) = parser.parse_args()
+
+if not os.path.exists(update_cache):
+    os.mkdir("%s" % update_cache)
+    os.mkdir("%s/downloads" % update_cache)
 
 if options.osver:
     os_release = get_current_version()

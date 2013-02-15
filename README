@@ -1,0 +1,48 @@
+Introduction
+============
+
+This is a proof of concept software update tool. A few things implemented
+here will go somewhere else, everything is implemented in the script to 
+allow testing, it does not mean this tool is the right place for those
+features.
+
+
+Requirements:
+=============
+- deltarpm
+- Python modules: You probably will need to install a few python module to get this going, including
+python-rpm.
+
+
+Getting Started
+==============
+
+change variables:
+
+update_repo="file:///home/nashif/system-updates/repo"
+update_cache="/tmp/updates"
+
+
+update_repo should point to the path where you have checked out the tree.
+update_cache is a test directory where all data is downloaded and extracted
+
+> ./swup.py -h
+Usage: swup.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -V, --os-version      Current OS Version
+  -l, --list-updates    List updates
+  -d, --download-only   Download only
+  -i LABEL, --install=LABEL
+                        Install update
+  -a, --install-all     Install all updates
+  -r, --recommended     Install recommended updates only
+  -q, --quiet           don't print status messages to stdout
+
+
+You can now list updates, download them and prepare them, but still not install them.
+
+
+
+
