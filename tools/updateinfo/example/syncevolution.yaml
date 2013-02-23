@@ -1,0 +1,20 @@
+Title: Syncevolution Update
+Packages: 
+    - syncevolution
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 7199
+    - 23106
+    - 24587
+    - 23106
+Description: |
+    * Fixed descriptions of different sync services are not fully visible truncated issue
+    * Added error message for configs without username
+    * Fixed the issue where sync option was unavailable when system was only connected with 3G
+    * Removed the error dialog on empty username
+Type: recommended
+Status: testing
+ID: syncevolution
+   

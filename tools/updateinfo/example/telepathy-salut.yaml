@@ -1,0 +1,13 @@
+Title: telepathy-salut Update
+Packages:
+    - telepathy-salut
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 23353
+Description: |
+    * Bug Fix: Update Telepathy stack to the latest stable releases
+Type: recommended
+Status: testing
+ID: telepathy-salut

@@ -1,0 +1,14 @@
+Title: deltarpm Update
+Packages: 
+    - deltarpm
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 14789
+Description: |
+    * Add Meego-ignore-md5-check.patch to fix BMC#14789
+Type: recommended
+Status: testing
+ID: deltarpm
+   

@@ -1,0 +1,13 @@
+Title: json-c Update
+Packages:
+    - json-c
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 24708
+Description: |
+    * Integrate jsonc-c package to  fix bluetooth connection failure issue
+Type: recommended
+Status: testing
+ID: json-c

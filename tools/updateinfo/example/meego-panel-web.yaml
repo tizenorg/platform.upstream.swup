@@ -1,0 +1,21 @@
+Title: Web Panel Update
+Packages: 
+    - meego-panel-web
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 22884
+    - 23532
+    - 23623
+    - 24550
+Description: |
+    * Fixed crasher bug in tweet time refreshing code
+    * Fixed chromium default browser issue
+    * Fix title length in tiles
+    * Fix panel height on big screen mode
+    * Fixed non rendered iterms in scrollview
+Type: recommended
+Status: testing
+ID: meego-panel-web
+   

@@ -1,0 +1,21 @@
+Title: gimp Update
+Packages: 
+    - gimp
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 12281
+    - 12284
+    - 12287
+    - 12290
+CVEs:
+    - CVE-2010-4540 
+    - CVE-2010-4541 
+    - CVE-2010-4542 
+    - CVE-2010-4543 
+Description: |
+    * Fixed several security issues.
+Type: recommended
+Status: testing
+ID: gimp

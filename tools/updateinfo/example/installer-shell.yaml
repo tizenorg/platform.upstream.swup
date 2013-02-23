@@ -1,0 +1,15 @@
+Title: installer-shell Update
+Packages: 
+    - installer-shell
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 11781
+    - 23647
+Description: |
+    * use partprobe to make sure the device node available to the kernel
+    * Bug Fix: installer-shell will not install IVI images
+Type: recommended
+Status: testing
+ID: installer-shell

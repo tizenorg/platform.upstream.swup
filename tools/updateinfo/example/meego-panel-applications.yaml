@@ -1,0 +1,25 @@
+Title: meego-panel-applications Update
+Packages: 
+    - meego-panel-applications
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19373
+    - 23079
+    - 23534
+    - 23080
+    - 23082
+    - 24274
+    - 23794
+    - 24275
+Description: |
+    * Translation updates
+    * Update to version 0.2.7
+    * Update translations. BMC#24274
+    * Fix key focus issue. BMC#23794
+    * Fix warning on empty string. BMC#24275
+Type: recommended
+Status: testing
+ID: meego-panel-applications
+   

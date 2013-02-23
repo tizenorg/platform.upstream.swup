@@ -1,0 +1,22 @@
+Title: Kernel Update
+Packages: 
+    - kernel
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 11375
+    - 8991
+CVEs:
+    - CVE-2010-3861
+    - CVE-2010-3880
+    - CVE-2010-1526
+    - ...
+Description: |
+    * Fixed several security issues
+    * upgrade to 2.6.37.6 to Fixed many security issues
+    * Backport patch from Linus' tree for brightness suport in Samsung N220
+Reboot: True
+Type: testing
+Status: testing
+ID: kernel

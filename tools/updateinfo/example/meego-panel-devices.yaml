@@ -1,0 +1,32 @@
+Title: Devices Panel Update
+Packages: 
+    - meego-panel-devices
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19206
+    - 4991
+    - 22622
+    - 23687
+    - 23799
+    - 24403
+    - 25459
+    - 22622
+    - 25592
+Description: |
+    * Use latest tarball 0.2.10
+    * Update dependency on mx 1.1.12
+    * Fixes: BMC#9645 - Little space for device buttons in some languages
+    * Add patch to set the volume icon to mute when the volume value is 0
+    * Add 0002-remove_redundant_brightness_setup_22622.patch to fix bmc #22622 
+    * Remove patch from meego-panel-devices
+    * Fix media import using banshee
+    * Backlight setting should persist after S3
+    * Fixed the regression where devices panel crashed on pinetrail
+    * Fixed hokkey brightness level issue
+    * Fixed the issue where device panel disappeared when dragging brightness slide
+Type: recommended
+Status: testing
+ID: meego-panel-devices
+   

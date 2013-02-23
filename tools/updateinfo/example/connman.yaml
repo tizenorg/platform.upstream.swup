@@ -1,0 +1,37 @@
+Title: Connection Manager Update
+Packages: 
+    - connman
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 23410
+    - 23401
+    - 23402
+    - 23341
+    - 23403
+    - 23628
+    - 22947
+    - 23717
+    - 23990
+    - 24591
+    - 24753
+    - 10584
+Description: |
+    * upgrade to 0.69.6 from Meego:1.2:oss (BMC#23410)
+    * service: Fix Manager.ConnectService D-Bus reply (BMC#23401)
+    * tethering: Use tether device IP as DNS server (BMC#23402)
+    * ntp: Fix ntpd_running return TRUE most of the time \
+    * add ntpd build support and ntpd path at spec file (BMC#23341)
+    * add localtime fixing patch \
+    * and fix-double-free-error.patch (BMC #23403)
+    * Bug Fix: For 3G network, if user input wrong APN, user name or password, user has no way to correct
+    * Fix Unable to save IP in Static Mode (Wireless)
+    * Fixed the issue where 3G modem failed to connect after reboot
+    * Fixed the issue where unable to turn on 3G radio after turned off
+    * Fixed the issue where Ralink RT2870/RT3070 USB wifi dongle unable to connect to wifi AP if no encrytion.
+    * Fixed the issue where test-connman utility failed to reconnect to hidden wifi after disconnect
+    * Fixed the issue where failed to switch priority between wifi and wired connection
+Type: recommended
+Status: testing
+ID: connman 

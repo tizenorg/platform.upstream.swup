@@ -1,0 +1,14 @@
+
+Note: This is still under heavy development.
+
+This plugin is used to generate update repos from OBS projects.
+It uses patch files in YAML format to process requests and put
+binary rpms into an existing repository.
+
+Updates to the repo are incremental, that means multiple versions
+of a package may exist.
+The plugin also creates deltarpms using createrepo.
+
+The plugin can be used with one of the examples as follows:
+
+ osc updateinfo --patch kernel.yaml  --arch i586  --testing -d ./repo

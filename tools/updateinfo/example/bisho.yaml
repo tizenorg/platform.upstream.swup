@@ -1,0 +1,13 @@
+Title: bisho Update
+Packages: 
+    - bisho
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 20295
+Description: |
+    * Translation updates
+Type: recommended
+Status: testing
+ID: bisho

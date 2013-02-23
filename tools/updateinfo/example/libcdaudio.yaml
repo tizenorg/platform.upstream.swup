@@ -1,0 +1,13 @@
+Title: libcdaudio Update
+Packages:
+    - libcdaudio
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 3499
+Description: |
+    * Fixed unable to play Audio CD
+Type: recommended
+Status: testing
+ID: libcdaudio

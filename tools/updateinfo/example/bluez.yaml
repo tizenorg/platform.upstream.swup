@@ -1,0 +1,13 @@
+Title: bluez Update
+Packages: 
+    - bluez
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 24653
+Description: |
+    * Fixed the issue where BT phone connection failed
+Type: recommended
+Status: testing
+ID: bluez

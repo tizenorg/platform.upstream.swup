@@ -1,0 +1,28 @@
+Title: G-C-C Setting Update
+Packages: 
+    - gnome-control-center-netbook
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19132
+    - 19225
+    - 20336
+    - 20502
+    - 23155
+    - 23439
+    - 23389
+    - 24264
+    - 23650
+Description: |
+    * Adding a new widget (MuxLabel) to the control center library 
+    * Fixed Going to Background tab for a second time does not display other backgrounds anymore issue
+    * Enable only when external monitors are available
+    * Fix installing the mimeinfo.cache, Explicitly exclude from installation
+    * Fix external monitor icon
+    * Bug Fix: Network settings don't appear in gnome-control-center-netbook
+    * Fixed the issue where "Security and passwords" option didn't work
+    * Fixed the issue where down key not work
+Type: recommended
+Status: testing
+ID: gnome-control-center-netbook

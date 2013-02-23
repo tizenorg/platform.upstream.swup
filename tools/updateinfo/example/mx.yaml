@@ -1,0 +1,30 @@
+Title: mx Update
+Packages: 
+    - mx
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19206
+    - 17519
+    - 22810
+    - 10661
+    - 23318
+Description: |
+    * MxGrid: compute min_width and min_height correctly (BMC #19206)
+    * Apply the paint opacity to both textures correctly in MxImage
+    * Clarify the documentation for mx_bin_allocate_child
+    * Indicate in the documentation which symbols are new in 1.2
+    * Draw rectangles around actors when using the layout debug flag
+    * MxBin: don't request space for the child when it is not visible
+    * MxBin: hide the label when it is empty or no text has been set
+    * Don't animate MxToggle if it is not mapped
+    * Remove the hover state from MxToggle if the pointer left during a drag
+    * idd a function to MxImage to animate changing the scale mode
+    * Disable collection button during slide show mode.
+    * Add a patch to fix the tooltips on netbooks
+    * MxEntry: Implement Unicode input mode
+    * Fix styling of icons in menu items
+Type: recommended
+Status: testing
+ID: mx

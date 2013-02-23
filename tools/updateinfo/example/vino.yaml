@@ -1,0 +1,15 @@
+Title: vino Update
+Packages:
+    - vino
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 23504
+    - 23652
+Description: |
+    * Bug Fix:  Desktop sharing requires Vino in the default package set 
+    * Fix the capplet categories to it shows in the personal settings panel
+Type: recommended
+Status: testing
+ID: vino

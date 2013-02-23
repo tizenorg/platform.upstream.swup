@@ -1,0 +1,22 @@
+Title: meego-panel-zones Update
+Packages:
+    - meego-panel-zones
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 71
+    - 23522
+    - 23523
+    - 23524
+    - 23525
+    - 23526
+    - 13703
+    - 21315
+    - 24271
+Description: |
+    * Update to version 0.3.0
+    * Fixed Zones Panel Icon isn't in sync with the state
+Type: recommended
+Status: testing
+ID: meego-panel-zones

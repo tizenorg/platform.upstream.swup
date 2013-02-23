@@ -1,0 +1,15 @@
+Title: udisks Update
+Packages: 
+    - udisks
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 3084
+    - 24325
+Description: |
+    * Added mark-all-rts_pstor-devices-as-card-readers.patch fixing BMC#3084
+    * Fixed the issue where USB HDD cannot be formated by disk utility
+Type: recommended
+Status: testing
+ID: udisks

@@ -1,0 +1,19 @@
+Title: sensorfw Update
+Packages: 
+    - sensorfw
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 21793
+    - 20777
+    - 19552
+    - 21059
+Description: |
+    * Pull in various fixes from Timo Rongas <timo.rongas@digia.com>:
+    * default-interval-for-als.patch: Sets default interval for ALS. Problem exists only with alsadaptor-sysfs, which is used only on N900. (BMC#21059)
+    * fix-acc-interval-evaluation.patch: Fixes evaluation of requested accelerometer intervals, solving data flow issues. (BMC#20777, BMC#19552)
+    * fix-run-state-handling.patch: Fixes reference counting of sensor sessions, solving data flow issues (BMC#21793)
+Type: recommended
+Status: testing
+ID: sensorfw

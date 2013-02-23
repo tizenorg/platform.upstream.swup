@@ -1,0 +1,13 @@
+Title: ca-certificates Update
+Packages:
+    - ca-certificates
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - ..
+Description: |
+    * Fix perl script generate certs file
+Type: recommended
+Status: testing
+ID: ca-certificates

@@ -1,0 +1,15 @@
+Title: Package Manager Update
+Packages: 
+    - PackageKit
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19239
+    - 20461
+Description: |
+    * BMC#19239:PackageKit hangs during some transactions.
+    * Import adobe public key for adobe related packages updates.
+Type: recommended
+Status: testing
+ID: PackageKit

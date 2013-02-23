@@ -1,0 +1,13 @@
+Title: libvpx Update
+Packages: 
+    - libvpx
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19205
+Description: |
+    * Add this new package which includes VP8 Video Codec.
+Type: recommended
+Status: testing
+ID: libvpx

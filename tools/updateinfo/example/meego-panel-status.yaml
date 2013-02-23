@@ -1,0 +1,16 @@
+Title: Status Panel Update
+Packages: 
+    - meego-panel-status
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 18388
+    - 23514
+Description: |
+    * Fixed crasher bug in tweet time refreshing code
+    * Fix padding for buttons container
+Type: recommended
+Status: testing
+ID: meego-panel-status
+   

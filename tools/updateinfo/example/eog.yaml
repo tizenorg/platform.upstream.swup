@@ -1,0 +1,13 @@
+Title: EOG Update
+Packages: 
+    - eog
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19211
+Description: |
+    * Disable collection button during slide show mode.
+Type: recommended
+Status: testing
+ID: eog

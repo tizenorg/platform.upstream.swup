@@ -1,0 +1,17 @@
+Title: clutter-gst Update
+Packages: 
+    - clutter-gst
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 22860
+    - 23436
+    - 23541
+Description: |
+    * Update to 1.3.14 for media explorer
+    * Fix the GLES2 shader to work with Cogl 1.8
+    * Update to 1.4.2 for media-explorer
+Type: recommended
+Status: testing
+ID: clutter-gst

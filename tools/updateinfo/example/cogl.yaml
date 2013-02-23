@@ -1,0 +1,17 @@
+Title: cogl Update
+Packages: 
+    - cogl
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 23104
+    - 22816
+    - 24395
+Description: |
+    * Add new package for Clutter 1.8.0 and Cederview
+    * Update to 1.8.2,add patch to fix output on external monitor
+    * Added a patch to fix none redrawn panels
+Type: recommended
+Status: testing
+ID: cogl

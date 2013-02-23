@@ -1,0 +1,13 @@
+Title: meegotouch-inputmethodbridges Update
+Packages: 
+    - meegotouch-inputmethodbridges
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 18619
+Description: |
+    * Fix: BMC#18619 - Virtual Keyboard does not appear for GTK+ apps
+Type: recommended
+Status: testing
+ID: meegotouch-inputmethodbridges

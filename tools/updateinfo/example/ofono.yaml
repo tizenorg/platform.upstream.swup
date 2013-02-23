@@ -1,0 +1,19 @@
+Title: ofono Update
+Packages: 
+    - ofono
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19095
+    - 23628
+    - 24650
+    - 24947
+Description: |
+    * Add dependency to usb-modeswitch and usb-modeswitch-data for BMC# 19095
+    * Bug Fix: For 3G network, if user input wrong APN, user name or password, user has no way to correct
+    * Upgraded ofono to 1.0 with patches to support speedup dongles
+    * Fixed the issue where ZTE MF668A failed to setup 3G connection
+Type: recommended
+Status: testing
+ID: ofono

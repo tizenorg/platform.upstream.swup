@@ -1,0 +1,14 @@
+Title: open-sans-fonts Update
+Packages:
+    - open-sans-fonts
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 23688
+Description: |
+    * We need fonts
+Type: recommended
+Status: testing
+ID: open-sans-fonts
+

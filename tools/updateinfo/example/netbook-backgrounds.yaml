@@ -1,0 +1,15 @@
+Title: netbook-backgrounds Update
+Packages: 
+    - netbook-backgrounds
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 11917
+    - 23411
+Description: |
+    * Provide backgrounds for 1920x1080 resolution
+    * Backgrounds need description file
+Type: recommended
+Status: testing
+ID: netbook-backgrounds

@@ -1,0 +1,13 @@
+Title: shared-mime-info Update
+Packages: 
+    - shared-mime-info
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 22884
+Description: |
+    * Fix default html handler issue(BMC#22884)
+Type: recommended
+Status: testing
+ID: shared-mime-info

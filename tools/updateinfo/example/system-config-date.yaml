@@ -1,0 +1,13 @@
+Title: system-config-date Update
+Packages: 
+    - system-config-date
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19226
+Description: |
+    * Fixed time zone cannot be selected issue 
+Type: recommended
+Status: testing
+ID: system-config-date

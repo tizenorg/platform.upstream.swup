@@ -1,0 +1,16 @@
+Title: meego-netbook-theme Update
+Packages: 
+    - meego-netbook-theme
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19128
+    - 22882
+    - 8313
+Description: |
+    * Update gtk theme to reflect chrome's new theme parsing
+    * Fixed error infobars should be less aggressive (not deep red) issue
+Type: recommended
+Status: testing
+ID: meego-netbook-theme

@@ -1,0 +1,13 @@
+Title: usb-modeswitch Update
+Packages:
+    - usb-modeswitch
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 23677
+Description: |
+    * Fixed wrong switch of Huawei E367u-1 modem 
+Type: recommended
+Status: testing
+ID: usb-modeswitch

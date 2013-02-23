@@ -1,0 +1,13 @@
+Title: gnome-vfs2 Update
+Packages: 
+    - gnome-vfs2
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 22884
+Description: |
+    * updated fix to use chromium as default browser to use /usr/bin/chromium-browser
+Type: recommended
+Status: testing
+ID: gnome-vfs2

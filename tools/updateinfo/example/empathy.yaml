@@ -1,0 +1,21 @@
+Title: Empathy IM Update
+Packages: 
+    - empathy
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19230
+    - 20062
+    - 23090
+    - 24662
+    - 24700
+Description: |
+    * Fixed regression introduced by fixing BMC#19230
+    * Fixed facebook messaging hangs issue
+    * Fixed Hypno koala needs changing
+    * Fixed the issue where unable to close "contact list" window by clicking "X" on the title
+    * Fixed the issue where gmail friend request alert disappeared quickly
+Type: recommended
+Status: testing
+ID: empathy

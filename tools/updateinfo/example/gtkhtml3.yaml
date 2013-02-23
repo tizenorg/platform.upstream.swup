@@ -1,0 +1,13 @@
+Title: Gtkhtml3 Update
+Packages: 
+    - gtkhtml3
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19221
+Description: |
+    * remove the wrong htmltable.patch.
+Type: recommended
+Status: testing
+ID: gtkhtml3

@@ -1,0 +1,13 @@
+Title: Frozen-bubble Update
+Packages: 
+    - frozen-bubble
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19190
+Description: |
+    * Add a run-time dependency on libmikmod.
+Type: recommended
+Status: testing
+ID: frozen-bubble

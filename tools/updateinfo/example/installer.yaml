@@ -1,0 +1,18 @@
+Title: installer Update
+Packages: 
+    - installer
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 19226
+    - 23691
+    - 23757
+Description: |
+    * Fixed install freezing before installation completely
+    * Fixed time zone cannot be selected issue
+    * Fixed installer crashed before copying
+    * Fixed the issue where installer widget exceed screen
+Type: recommended
+Status: testing
+ID: installer

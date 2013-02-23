@@ -1,0 +1,13 @@
+Title: alsa-lib Update
+Packages:
+    - alsa-lib
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 24708
+Description: |
+    * Updated to 1.0.24 to fix bluetooth connection failure issue
+Type: recommended
+Status: testing
+ID: alsa-lib

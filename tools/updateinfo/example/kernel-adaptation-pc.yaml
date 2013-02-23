@@ -1,0 +1,30 @@
+Title: kernel-adaptation-pc Update
+Packages: 
+    - kernel-adaptation-pc
+Release: MeeGo 1.2.0
+Repository: MeeGo_1.2.0
+Project: MeeGo:1.2.0:oss
+Bugs:
+    - 24373
+    - 24785
+    - 24696
+    - 25031
+    - 25240
+Description: |
+    * Forward CDT changes
+    * Fix usage scenario when TTYs are switched after hotplugging (Trac#237)
+    * Fix issue related to display switching (BMC #24785)
+    * TTM: Clear high mem pages properly (Trac#257)
+    * Addresses lid closure suspend operations (Trac#243)
+    * Fixed corner case where X server may not be restartable after hotplug
+    * PowerVR driver, internal fec8755f
+    * Fix issue where certain MPEG-2 streams cause a driver crash(SH-BZ 524)
+    * Brightness level persists after DPMS operations (BMC 25031)
+    * Fixes, optimizations to "FlipChain" buffering scheme (minor)
+    * Fixes, optimizations to video decoder (minor)
+    * Integrate LVDS consistent backlight level patch
+    * Updated to version 1.0.1
+Reboot: True
+Type: recommended
+Status: testing
+ID: kernel-adaptation-pc
