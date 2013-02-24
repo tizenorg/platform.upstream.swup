@@ -74,7 +74,7 @@ class UpdateInfo:
                 'type'      : update['Type'],
                 'status'    : update['Status'],
                 'version'   : "%04d" %self.next,
-                'from'      : 'updates@meego.com'
+                'from'      : 'updates@tizen.org'
         })
 
         self._insert(root, 'id', text=update['ID'])
@@ -97,7 +97,7 @@ class UpdateInfo:
         for bug in update['Bugs']:
             self._insert(refs, 'reference', attrs={
                     'type' : 'bugzilla',
-                    'href' : 'http://bugs.meego.com/show_bug.cgi?id=%s' %bug,
+                    'href' : 'http://bugs.tizen.org/show_bug.cgi?id=%s' %bug,
                     'id'   : bug,
                     'title': 'Bug number %s' %bug
             })
@@ -113,8 +113,8 @@ class UpdateInfo:
         #self._insert(collection, 'name', text=update.release.long_name)
 
         for u in updates:
-            filename = u['binary'].name
-            if u['header'][rpm.RPMTAG_SOURCEPACKAGE] or 'debuginfo' in u['binary'].name:
+            filename = u['binary']
+            if u['header'][rpm.RPMTAG_SOURCEPACKAGE] or 'debuginfo' in u['binary']:
                 continue
             pkg = self._insert(collection, 'package', attrs={
                             'name'      : u['header'][rpm.RPMTAG_NAME],
@@ -135,6 +135,9 @@ class UpdateInfo:
 
         pkglist.appendChild(collection)
         root.appendChild(pkglist)
+
+
+
 
 
 parser = OptionParser()
@@ -169,145 +172,37 @@ if not opts.arch:
     print "missing options -a|--arch"
     sys.exit(1)
 
-patches = [opts.patch] if opts.patch else glob.glob(opts.patchdir+'/*.yaml')
 
-if opts.arch == 'i586':
-    archdir = 'ia32'
-else:
-    archdir = opts.arch # TODO confirm
-
-packdir = "%s/%s/packages" %(opts.destdir, archdir)
-sourcedir = "%s/source" %(opts.destdir)
-debugdir =  "%s/%s/debug" %(opts.destdir, archdir)
-original = "%s" %(opts.origdir)
-for d in [packdir, sourcedir, debugdir, original]:
-    if not os.path.isdir(d):
-        print "Creating %s" % d
-        os.makedirs(d, 0755)
 
 ui = UpdateInfo(cache = opts.updateinfo)
+patches = [opts.patch] if opts.patch else glob.glob(opts.patchdir+'/*.yaml')
 
+updates = []
 for patch_path in patches:
     print 'Processing patch file:', patch_path
     try:
-        self.stream = file(patch_path, 'r')
+        stream = file(patch_path, 'r')
     except IOError:
         print 'Cannot read file: %s' % patch_path
 
     try:
-        patch = yaml.load(self.stream)
+        patch = yaml.load(stream)
     except yaml.scanner.ScannerError, e:
         print 'syntax error found in yaml: %s' % str(e)
 
-    orig_project = None
-    orig_target = None
-    if patch.has_key("Project"):
-        if "/" in patch['Project']:
-           (orig_project, orig_target) = patch['Project'].split("/")
-        else:
-            orig_project = patch['Project']
-            orig_target = "standard"
-    else:
-        print "No Project specified"
-        continue
+    packages = glob.glob('rpms/*.rpm') + glob.glob('new/*.rpm')
+    for package in packages:
+        u = {}
+        u['binary'] = package
+        ts = rpm.TransactionSet("/", rpm._RPMVSF_NOSIGNATURES)
+        fd = os.open(package, os.O_RDONLY)
+        header = ts.hdrFromFdno(fd)
+        #print header
+        os.close(fd)
+        u['header'] = header
+        updates.append(u) 
 
-    if opts.testing:
-        project = "%s:Update:Testing" %orig_project
-    else:
-        project = "%s:Update" %orig_project
-
-    if not patch.has_key('Repository'):
-        print "You need to define the project repository in the patch file."
-        continue
-
-    repository = patch['Repository']
-
-    # Get package list
-
-    updates = []
-    for pkg in patch['Packages']:
-        binaries = get_binarylist(apiurl,
-                               project,
-                               repository,
-                               opts.arch,
-                               package = pkg,
-                               verbose=True)
-
-        if not binaries:
-            print 'For package %s no binaries in proj(%s) found.' % (pkg, project)
-            continue
-
-        for binary in binaries:
-            u = {}
-            u['binary'] = binary
-            target_filename = ""
-            if binary.name.endswith('.src.rpm'):
-                target_filename = '%s/source/%s' % (opts.destdir, binary.name)
-            elif binary.name.startswith('%s-debuginfo' %pkg):
-                target_filename = '%s/%s/debug/%s' % (opts.destdir, archdir, binary.name)
-            else:
-                target_filename = '%s/%s/packages/%s' % (opts.destdir, archdir, binary.name)
-
-            cached = False
-            if os.path.exists(target_filename):
-                st = os.stat(target_filename)
-                if st.st_mtime == binary.mtime and st.st_size == binary.size:
-                    cached = True
-
-            if not cached:
-                get_binary_file(apiurl,
-                            project,
-                            repository, opts.arch,
-                            binary.name,
-                            package = pkg,
-                            target_filename = target_filename,
-                            target_mtime = binary.mtime,
-                            progress_meter = not opts.quiet)
-
-            ts = rpm.TransactionSet("/", rpm._RPMVSF_NOSIGNATURES)
-            fd = os.open(target_filename, os.O_RDONLY)
-            header = ts.hdrFromFdno(fd)
-            os.close(fd)
-            u['header'] = header
-            updates.append(u)
-
-
-    # Get original packages
-    for pkg in patch['Packages']:
-        binaries = get_binarylist(apiurl,
-                               orig_project,
-                               orig_target,
-                               opts.arch,
-                               package = pkg,
-                               verbose=True)
-
-        if not binaries:
-            print 'For package %s no binaries in proj(%s) found.' % (pkg, orig_project)
-            continue
-
-        for binary in binaries:
-            target_filename = ""
-            if not binary.name.endswith('.src.rpm') and not  binary.name.startswith('%s-debuginfo' %pkg):
-                target_filename = '%s/%s' % (opts.origdir, binary.name)
-            else:
-                continue
-
-            if os.path.exists(target_filename):
-                st = os.stat(target_filename)
-                if st.st_mtime == binary.mtime and st.st_size == binary.size:
-                    continue
-
-            get_binary_file(apiurl,
-                        orig_project,
-                        orig_target,
-                        opts.arch,
-                        binary.name,
-                        package = pkg,
-                        target_filename = target_filename,
-                        target_mtime = binary.mtime,
-                        progress_meter = not opts.quiet)
-
-    ui.add_patch(patch, updates)
+    ui.add_patch(patch, updates)           
 
 # save to file
 updateinfo_xml = ui.doc.toxml()

@@ -14,7 +14,7 @@ import zipfile
 import rpm
 import subprocess as sub
 
-update_repo="file:///home/nashif/system-updates/repo"
+update_repo="file:///home/tizen/swup/repo"
 update_cache="/tmp/updates"
 
 
@@ -110,6 +110,7 @@ def download_update(update_data):
     u = update_data
     location = u['location']
     if not os.path.exists("%s/downloads/%s" % (update_cache,location)):
+        print "Downloading %s/%s" % (update_repo, location)
         update_file = urllib2.urlopen("%s/%s" % (update_repo, location) )
         location = os.path.basename(location)
         announced_csum = u['checksum']
@@ -144,69 +145,35 @@ def get_new_update_list(location):
     fp.write(update_raw)
     fp.close()
 
+def unpack(location, update_id):
+    zfile = zipfile.ZipFile("%s/downloads/%s" % (update_cache,location))
+    for name in zfile.namelist():            
+        (dirname, filename) = os.path.split(name)
+        print "Decompressing " + filename + " on " + dirname
+        if not os.path.exists("%s/downloads/%s" % (update_cache, dirname)):
+            os.mkdir("%s/downloads/%s" % (update_cache, dirname))            
+        if filename != "":
+            fd = open("%s/downloads/%s" % (update_cache, name),"w")
+            fd.write(zfile.read(name))
+            fd.close()
+
 
 def prepare_update(update_data):
     u = update_data
     location = u['location']
+    update_id = u['id']
     # unzip
-    if os.path.exists("%s/downloads/%s" % (update_cache,location)) and not os.path.exists("%s/downloads/%s" % (update_cache,u['id'])):    
-        zfile = zipfile.ZipFile("%s/downloads/%s" % (update_cache,location))
-        for name in zfile.namelist():            
-            (dirname, filename) = os.path.split(name)
-            print "Decompressing " + filename + " on " + dirname
-            if not os.path.exists("%s/downloads/%s" % (update_cache, dirname)):
-                os.mkdir("%s/downloads/%s" % (update_cache, dirname))            
-            if filename != "":
-                fd = open("%s/downloads/%s" % (update_cache, name),"w")
-                fd.write(zfile.read(name))
-                fd.close()
-    # apply deltas
-    print "Delta Packages:"
-    for delta in os.listdir("%s/downloads/%s/delta" % (update_cache,u['id'])):
-        
+    if os.path.exists("%s/downloads/%s" % (update_cache,location)) and not os.path.exists("%s/downloads/%s" % (update_cache,update_id)):
+        print "Unpacking %s" %location
+        unpack(location, update_id)
+    else:
+        print "cant find update: %s" % update_id
+        return
 
-        ts = rpm.TransactionSet()
-        delta_location = "%s/downloads/%s/delta/%s" % (update_cache, u['id'], delta)
-        fdno = os.open(delta_location, os.O_RDONLY)
-        
-        hdr = ts.hdrFromFdno(fdno)
-        os.close(fdno)
-        target_rpm =  "%s-%s-%s.%s.rpm" % (hdr['name'], hdr['version'], hdr['release'], hdr['arch'])
-        target_location = "%s/downloads/%s/packages/%s" % (update_cache, u['id'], target_rpm)
-        version = "_%s.%s.drpm" % (hdr['release'], hdr['arch'])
-        #print version
-        original_rpm = "%s.%s.rpm" %( delta.replace(version, ""), hdr['arch'] )
-        original_rpm = original_rpm.replace("_%s" % hdr['version'], "")
-        print "   %s" %original_rpm
-        print " + %s" %delta
-        print " = %s" %target_rpm
-
-        # Verify
-        
-        mi = ts.dbMatch("name", hdr['name'])
-        Found = False
-        for r in mi:
-            installed = "%s-%s-%s.%s.rpm" % (r.name, r.version, r.release, r.arch)
-            #original = "%s-%s-%s.%s" % (hdr['name'], hdr['version'], hdr['release'], hdr['arch'])        
-            print installed
-
-            if installed == original_rpm:
-                Found = True
-        if Found:
-            print "Original availale, delta can be applied. Applying now..."
-            # apply delta here
-            if os.path.exists("/usr/bin/applydeltarpm"):
-                if not os.path.exists(target_location):
-                    cmd = '/usr/bin/applydeltarpm %s %s' % (delta_location, target_location) 
-                    print cmd
-                    p = sub.Popen(["/usr/bin/applydeltarpm", delta_location, target_location] ,stdout=sub.PIPE,stderr=sub.PIPE)
-                    output, errors = p.communicate()
-                    print output
-                else:
-                    print "Target already exists"
-        else:
-            print "Error: original not available, can't apply delta. We have %s instead of %s" % (installed, original_rpm)
-
+    repodir = "%s/repos.d" %update_cache
+    repourl = "file://%s/downloads/%s" % (update_cache, update_id)
+    os.system("zypper --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
+    os.system("zypper --reposd-dir %s patch -d" % repodir )
 
 
 def apply_update(update_data):
@@ -242,6 +209,7 @@ parser.add_option("-q", "--quiet",
 if not os.path.exists(update_cache):
     os.mkdir("%s" % update_cache)
     os.mkdir("%s/downloads" % update_cache)
+    os.mkdir("%s/repos.d" % update_cache)
 
 if options.osver:
     os_release = get_current_version()
