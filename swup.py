@@ -13,9 +13,10 @@ import sys
 import zipfile
 import rpm
 import subprocess as sub
+import distutils
 
-update_repo="file:///home/tizen/swup/repo"
-update_cache="/tmp/updates"
+update_repo="file:///home/tizen/test-updates/updates-repo"
+update_cache="/var/cache/updates"
 
 
 
@@ -69,7 +70,7 @@ def probe_updates():
 
     updatemd_local = open("%s/data/updatemd.xml" % update_cache )
     root = etree.XML(updatemd_local.read())
-    data = root.xpath("//data[@type='update']")[0]
+    data = root.xpath("//data[@type='updates']")[0]
     loc = data.xpath("location")[0]
     href = loc.attrib['href']
     chksum = data.xpath("checksum")[0]
@@ -109,6 +110,8 @@ def parse_updates():
 def download_update(update_data):
     u = update_data
     location = u['location']
+    if not os.path.exists("%s/downloads" % (update_cache)):
+        os.mkdir("%s/downloads" % (update_cache))
     if not os.path.exists("%s/downloads/%s" % (update_cache,location)):
         print "Downloading %s/%s" % (update_repo, location)
         update_file = urllib2.urlopen("%s/%s" % (update_repo, location) )
@@ -140,12 +143,50 @@ def download_all_updates(update_label=None):
 
 def get_new_update_list(location):
     up = urllib2.urlopen("%s/%s" % (update_repo, location) )
+    import gzip
     update_raw = up.read()
-    fp = open("%s/data/updates.xml" % update_cache , "w")
+    fp = open("%s/data/updates.xml.gz" % update_cache , "w")
     fp.write(update_raw)
     fp.close()
+    f = gzip.open("%s/data/updates.xml.gz" % update_cache, 'rb')
+    file_content = f.read()
+    f.close()
+    fp = open("%s/data/updates.xml" % update_cache , "w")
+    fp.write(file_content)
+    fp.close()
+
+
+def create_zip():
+    #distutils.archive_util.make_zipfile(base_name, base_dir[, verbose=0, dry_run=0])
+    pass
+
+def pack(target):
+    from zipfile_infolist import print_info
+    import zipfile
+    try:
+        import zlib
+        compression = zipfile.ZIP_DEFLATED
+    except:
+        compression = zipfile.ZIP_STORED
+
+    modes = { zipfile.ZIP_DEFLATED: 'deflated',
+              zipfile.ZIP_STORED:   'stored',
+              }
+
+    print 'creating update archive'
+    zf = zipfile.ZipFile('%s.zip' %target, mode='w')
+    try:
+        print 'adding README.txt with compression mode', modes[compression]
+        zf.write('README.txt', compress_type=compression)
+    finally:
+        print 'closing'
+        zf.close()
+
+    print
+    print_info('%s.zip' %target)
 
 def unpack(location, update_id):
+    os.mkdir("%s/downloads/%s" %(update_cache, update_id))
     zfile = zipfile.ZipFile("%s/downloads/%s" % (update_cache,location))
     for name in zfile.namelist():            
         (dirname, filename) = os.path.split(name)
@@ -158,7 +199,7 @@ def unpack(location, update_id):
             fd.close()
 
 
-def prepare_update(update_data):
+def prepare_update(update_data, download):
     u = update_data
     location = u['location']
     update_id = u['id']
@@ -167,13 +208,31 @@ def prepare_update(update_data):
         print "Unpacking %s" %location
         unpack(location, update_id)
     else:
-        print "cant find update: %s" % update_id
-        return
+        print "Update %s already unpacked" % update_id
 
     repodir = "%s/repos.d" %update_cache
     repourl = "file://%s/downloads/%s" % (update_cache, update_id)
-    os.system("zypper --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
-    os.system("zypper --reposd-dir %s patch -d" % repodir )
+    if not os.path.exists("%s/%s.repo" % (repourl, update_id)):
+        os.system("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
+    if not download:
+        os.system("zypper --quiet --non-interactive --reposd-dir %s patch --repo %s -d" % (repodir, update_id) )
+
+def install_update(update_data):
+    u = update_data
+    location = u['location']
+    update_id = u['id']
+    # unzip
+    if not os.path.exists("%s/downloads/%s" % (update_cache,update_id)):
+        prepare_update(update_data, False)
+
+    repodir = "%s/repos.d" %update_cache
+    repourl = "file://%s/downloads/%s" % (update_cache, update_id)
+    if os.path.exists("%s/%s.repo" % (repourl, update_id)):
+        os.system("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
+    os.system("zypper --quiet  --non-interactive --reposd-dir %s patch --repo %s " % (repodir, update_id) )
+    if not os.path.exists("%s/installed" % (update_cache)):
+        os.mkdir("%s/installed" % (update_cache))
+    shutil.copyfile("%s/downloads/%s/%s" %(update_cache, update_id, update_id), "%s/installed/%s" % (update_cache, update_id))
 
 
 def apply_update(update_data):
@@ -183,23 +242,37 @@ def list_updates():
     updates = parse_updates()
     for k in updates.keys():
         u = updates[k]
-        print "%s" %u['id']
-        print "    %s" %u['title']
+        installed = "%s/installed/%s" % (update_cache, u['id'])
+        if not os.path.exists(installed):
+            print "%s" %u['id']
+            print "    %s" %u['title']
 
 
 parser = OptionParser()
 parser.add_option("-V", "--os-version", action="store_true", dest="osver", default=False,
                   help="Current OS Version")
+
 parser.add_option("-l", "--list-updates", action="store_true", dest="listupdates", default=False,
                   help="List updates")
+
 parser.add_option("-d", "--download-only", action="store_true", dest="downloadonly", default=False,
                   help="Download only")
+
 parser.add_option("-i", "--install",  dest="install", metavar="LABEL",
                   help="Install update")
+
+parser.add_option("-p", "--prepare",  dest="prepare", metavar="LABEL",
+                  help="Prepare update")
+
 parser.add_option("-a", "--install-all",  dest="installall", action="store_true", default=False,
                   help="Install all updates")
+
+parser.add_option("-P", "--prepare-all",  dest="prepareall", action="store_true", default=False,
+                  help="prepare update")
+
 parser.add_option("-r", "--recommended",  dest="recommended", action="store_true", default=False,
                   help="Install recommended updates only")
+
 parser.add_option("-q", "--quiet",
                   action="store_false", dest="verbose", default=True,
                   help="don't print status messages to stdout")
@@ -223,6 +296,16 @@ if options.downloadonly:
     probe_updates()
     download_all_updates()
 
+if options.prepare is not None:
+    probe_updates()
+    updates = parse_updates()
+    if not updates.has_key(options.install):
+        print "%s is not available for installation. Abort." %options.install
+        sys.exit()
+    u = updates[options.install]
+    download_update(u)
+    prepare_update(u, False)
+
 if options.install is not None:
     probe_updates()
     updates = parse_updates()
@@ -231,7 +314,4 @@ if options.install is not None:
         sys.exit()
     u = updates[options.install]
     download_update(u)
-    prepare_update(u)
-
-
-
+    install_update(u)

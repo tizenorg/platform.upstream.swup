@@ -8,6 +8,8 @@ Group:          System/Management
 Source:         %{name}-%{version}.tar.bz2
 Requires:       deltarpm
 Requires:       python-lxml
+Requires:       python-yaml
+Requires:       python-rpm
 
 %description
 Software Update Tool.
@@ -16,13 +18,14 @@ Software Update Tool.
 %setup -q
 
 %build
-make %{?_smp_mflags}
 
 %install
 %make_install
 
 %files
 %defattr(-,root,root)
+%{_bindir}/swup
+%{_bindir}/updateinfo
 
 %changelog
 

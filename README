@@ -20,13 +20,14 @@ Getting Started
 change variables:
 
 update_repo="file:///home/nashif/system-updates/repo"
-update_cache="/tmp/updates"
+update_cache="/var/cache/updates"
 
 
 update_repo should point to the path where you have checked out the tree.
 update_cache is a test directory where all data is downloaded and extracted
 
-> ./swup.py -h
+
+
 Usage: swup.py [options]
 
 Options:
@@ -36,13 +37,9 @@ Options:
   -d, --download-only   Download only
   -i LABEL, --install=LABEL
                         Install update
+  -p LABEL, --prepare=LABEL
+                        Prepare update
   -a, --install-all     Install all updates
+  -P, --prepare-all     prepare update
   -r, --recommended     Install recommended updates only
   -q, --quiet           don't print status messages to stdout
-
-
-You can now list updates, download them and prepare them, but still not install them.
-
-
-
-

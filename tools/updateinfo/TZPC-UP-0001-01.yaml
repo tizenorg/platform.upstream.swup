@@ -1,9 +1,5 @@
-Title: vino Update
-Packages:
-    - vino
-Release: MeeGo 1.2.0
-Repository: MeeGo_1.2.0
-Project: MeeGo:1.2.0:oss
+Title: Tizen PC Update
+Release: Tizen PC 3.0.0.1
 Bugs:
     - 23504
     - 23652
@@ -11,5 +7,5 @@ Description: |
     * Bug Fix:  Desktop sharing requires Vino in the default package set 
     * Fix the capplet categories to it shows in the personal settings panel
 Type: recommended
-Status: testing
-ID: vino
+Status: stable
+ID: TZPC-UP-0001-01

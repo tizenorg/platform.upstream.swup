@@ -1,14 +1,69 @@
 
 Note: This is still under heavy development.
 
-This plugin is used to generate update repos from OBS projects.
-It uses patch files in YAML format to process requests and put
-binary rpms into an existing repository.
+updateinfo.py
+---------------
 
-Updates to the repo are incremental, that means multiple versions
-of a package may exist.
-The plugin also creates deltarpms using createrepo.
+This script creates the update file and the related metadata based
+on an input file using the YAML syntax (compatible to MeeGo updates)
 
-The plugin can be used with one of the examples as follows:
+The input file has the following basic syntax:
 
- osc updateinfo --patch kernel.yaml  --arch i586  --testing -d ./repo
+--
+
+Title: Tizen PC Update 2
+Release: Tizen PC 3.0.0.2
+Bugs:
+    - 23504
+    - 23652
+Description: |
+    * Bug Fix:  Desktop sharing requires Vino in the default package set 
+    * Fix the capplet categories to it shows in the personal settings panel
+Type: recommended
+Status: stable
+ID: TZPC-UP-0002-01
+
+----
+
+The input file has all the information related to the update which will be 
+transferred to the update repository and then to the UI. The text format is 
+simple markup language that will be converted to basic HTML.
+
+To run this script you will need an update input file (the yaml file) and 
+a directory named after the patch ID with the packages that need to be updated 
+and using the following structure:
+
+ TZPC-UP-0002-01/
+    rpms  # packages that exist on the target but need updating
+    new  # packages that are new and were not installed on the target system.
+
+In addition, you will need a directory with the old packages that currently are 
+installed on the system and that require tan update. This is needed to enable
+delta package creation.
+
+So, with those prequisites you should be able to call the the command:
+
+Options:
+  -h, --help            show this help message and exit
+  -u TEXT, --updateinfo=TEXT
+                        cached meta updateinfo file
+  -U UPDATES, --updatesfile=UPDATES
+                        master updates.xml file
+  -O ORIGINAL, --original=ORIGINAL
+                        Original and Old package directory
+  -q, --quiet           do not show downloading progress
+  -d DIR, --destdir=DIR
+                        Directory where to store the updates.
+  -p TEXT, --patch=TEXT
+                        Patch information
+  -P DIR, --patchdir=DIR
+                        directory with patch files
+  -t, --testing         test updates
+
+
+python updateinfo.py --patch <path to patch>/TZPC-UP-0002-01.yaml \
+    --original <path to old packages>/old_packages/  --destdir <destination>
+
+
+<destination> which is set using --destdir has the update directory with the
+packages inside. (TZPC-UP-0002-01/rpms and TZPC-UP-0002-01/new)
