@@ -1,0 +1,52 @@
+#!/bin/sh
+
+BUILD_OLD=$1
+BUILD_NEW=$2
+USER=""
+PASS=""
+WGET="/usr/bin/wget -q --timestamping "
+DAILY="/pc/releases/daily/trunk"
+WEEKLY="/pc/releases/weekly/trunk"
+SNAPSHOTS="/${RELEASE_TYPE}"
+
+RELEASE_TYPE=$DAILY
+
+BASE_DIR=$PWD
+wget  https://$USER:$PASS@download.tz.otcshare.org/${RELEASE_TYPE}/${BUILD_OLD}/images/gnome/gnome-${BUILD_OLD}.packages -O old
+wget  https://$USER:$PASS@download.tz.otcshare.org/${RELEASE_TYPE}/${BUILD_NEW}/images/gnome/gnome-${BUILD_NEW}.packages -O new
+awk -F' ' ' { print $1 } '  $BASE_DIR/old | sort > $BASE_DIR/p0
+awk -F' ' ' { print $1 } '  $BASE_DIR/new | sort > $BASE_DIR/p1
+
+comm -3 $BASE_DIR/p0 $BASE_DIR/p1 > $BASE_DIR/new_packages
+
+OLD_IFS=$IFS
+IFS=$'\n'
+mkdir -p old_packages
+mkdir -p update/rpms
+mkdir -p update/new
+pushd old_packages
+for i in `diff -u $BASE_DIR/old $BASE_DIR/new | grep "^-" | grep -v "^---" | grep -v "^+++" | sed -e 's/^-//'`; do
+    pac=$(echo $i | sed -e 's/\([^\.]*\)\.\([^\s]*\)\s\([^$]*\)/\2\/\1-\3.\2.rpm/')
+    echo "Fetching $pac"
+    /usr/bin/wget -q --timestamping https://$USER:$PASS@download.tz.otcshare.org/${RELEASE_TYPE}/${BUILD_OLD}/repos/pc/x86_64/packages/$pac
+done
+popd
+for i in `diff -u $BASE_DIR/old $BASE_DIR/new | grep "^+" | grep -v "^---" | grep -v "^+++" | sed -e 's/^+//'`; do
+    pac=$(echo $i | sed -e 's/\([^\.]*\)\.\([^\s]*\)\s\([^$]*\)/\2\/\1-\3.\2.rpm/')
+    pac2=$(echo $i | sed -e 's/\([^\.]*\)\.\([^\s]*\)\s\([^$]*\)/\1.\2/')
+    echo "is $pac2 a new package?"
+    grep  $pac2 $BASE_DIR/new_packages
+    if [ $? = 1 ]; then
+	pushd update/rpms
+    else
+	pushd update/new
+    fi
+    echo "Fetching $pac"
+    /usr/bin/wget -q --timestamping https://$USER:$PASS@download.tz.otcshare.org/${RELEASE_TYPE}/${BUILD_NEW}/repos/pc/x86_64/packages/$pac 
+    popd
+
+done
+IFS=$OLD_IFS
+
+
+#rm $BASE_DIR/new $BASE_DIR/old $BASE_DIR/p0 $BASE_DIR/{p1,new_packages}
