@@ -190,7 +190,7 @@ def unpack(location, update_id):
     zfile = zipfile.ZipFile("%s/downloads/%s" % (update_cache,location))
     for name in zfile.namelist():            
         (dirname, filename) = os.path.split(name)
-        print "Decompressing " + filename + " on " + dirname
+        #print "Decompressing " + filename + " on " + dirname
         if not os.path.exists("%s/downloads/%s" % (update_cache, dirname)):
             os.mkdir("%s/downloads/%s" % (update_cache, dirname))            
         if filename != "":
