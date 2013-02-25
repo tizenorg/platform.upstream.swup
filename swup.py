@@ -15,7 +15,7 @@ import rpm
 import subprocess as sub
 import distutils
 
-update_repo="file:///home/tizen/test-updates/updates-repo"
+update_repo="http://anashif-desktop.jf.intel.com/~public_html/tizen-pc/updates"
 update_cache="/var/cache/updates"
 
 
