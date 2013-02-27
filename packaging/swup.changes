@@ -1,3 +1,12 @@
+* Sun Mar 10 2013 Anas Nashif <anas.nashif@intel.com> accepted/trunk/20130305.082416@6c0cc3e
+- Bump version: 0.2
+
+* Tue Mar 05 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130305.063957@1b22b82
+- do not install system-update.target
+
+* Mon Mar 04 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130227.214201@9a3dcbd
+- Add systemd service
+
 * Mon Feb 25 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130225.214101@faf331d
 - Do not be verbose
 
