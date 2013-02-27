@@ -1,0 +1,11 @@
+[Unit]
+Description=Tizen System Updater
+DefaultDependencies=no
+OnFailure=reboot.target
+Requires=systemd-remount-fs.service connman.service
+After=systemd-remount-fs.service connman.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/usr/bin/system-update
