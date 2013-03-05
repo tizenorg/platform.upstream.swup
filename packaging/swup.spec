@@ -31,7 +31,7 @@ rm -f %{buildroot}%{_unitdir}/system-update.target
 %{_bindir}/system-update
 %{_bindir}/updateinfo
 %{_unitdir}/system-update.service
-%{_unitdir}/system-update.target
+#%{_unitdir}/system-update.target
 %{_unitdir}/system-update.target.wants/system-update.service
 
 %changelog
