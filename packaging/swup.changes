@@ -1,3 +1,6 @@
+* Mon Mar 04 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130227.214201@9a3dcbd
+- Add systemd service
+
 * Mon Feb 25 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130225.214101@faf331d
 - Do not be verbose
 
