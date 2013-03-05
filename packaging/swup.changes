@@ -1,3 +1,6 @@
+* Tue Mar 05 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130305.063957@1b22b82
+- do not install system-update.target
+
 * Mon Mar 04 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130227.214201@9a3dcbd
 - Add systemd service
 
