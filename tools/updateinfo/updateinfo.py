@@ -38,6 +38,122 @@ class Updates:
         if patch and updates:
             self.add_update(patch, updates)
 
+    def _desc_to_html(self, page, desc):
+        in_ul = False
+        for line in desc.splitlines():
+            if line.startswith('- ') or line.startswith('* '):
+                if not in_ul:
+                    page.ul()
+                    in_ul = True
+                page.li(line[2:])
+            else:
+                if in_ul:
+                    page.ul.close()
+                    in_ul = False
+                page.p(line)
+        if in_ul:
+            page.ul.close()
+
+    def get_title(self, t, is_html = False):
+        if is_html:
+            import markup
+            page = markup.page()
+            page.init( title = t, style = CSS_STRIKE)
+            page.h1(t)
+            return str(page).rstrip('</html>').rstrip().rstrip('</body>')
+        else:
+            return t
+
+    def get_summary_info(self, sum, is_html = False):
+        if is_html:
+            import markup
+            page = markup.page()
+            page.h2(sum['Title'])
+            self._desc_to_html(page, sum['Description'])
+
+            return str(page)
+
+        else:
+            return '%s\n%s' %(sum['Title'], sum['Description'])
+
+    def get_patch_info(self, update, is_html = False):
+        if is_html:
+            import markup
+            page = markup.page()
+            page.h3(update['Title'])
+            self._desc_to_html(page, update['Description'])
+
+            if update.has_key("Bugs"):
+                page.p.open()
+                page.add('Resolved Bugs: ')
+                firstone = True
+                for bug in update['Bugs']:
+                    if firstone:
+                        firstone = False
+                    else:
+                        page.add(', ')
+                    page.a(bug, href='http://bugs.tizen.org/show_bug.cgi?id=%s' %bug, class_="strike_link")
+                page.p.close()
+
+            if update.has_key("CVEs"):
+                page.p.open()
+                page.add('Resolved CVE Issues: ')
+                firstone = True
+                for cve in update['CVEs']:
+                    if firstone:
+                        firstone = False
+                    else:
+                        page.add(', ')
+                    page.a(cve, href='http://cve.mitre.org/cgi-bin/cvename.cgi?name=%s\n' % cve, class_="strike_link")
+                page.p.close()
+
+            return str(page)
+        else:
+            INFO = """
+
+    Patch <%s>:
+        Title: %s
+        Type: %s
+        Project: %s
+        Repository: %s
+        Release: %s
+        Status: %s
+        Packages: %s
+        Description:
+            %s
+    """ % (update['ID'],
+           update['Title'],
+           update['Type'],
+           update['Project'],
+           update['Repository'],
+           update['Release'],
+           update['Status'],
+           ", ".join(update['Packages']),
+           '\n        '.join(update['Description'].splitlines()))
+
+            if update.has_key("CVEs"):
+                INFO += "    CVEs:\n"
+                cve_info = ''
+                for cve in update['CVEs']:
+                    cve_info += '       http://cve.mitre.org/cgi-bin/cvename.cgi?name=%s\n' %cve
+                INFO += cve_info
+
+            if update.has_key("Bugs"):
+                INFO += "    Bugs:\n"
+                bug_info = ''
+                for bug in update['Bugs']:
+                    bug_info += '       http://bugs.tizen.org/show_bug.cgi?id=%s\n' %bug
+                INFO += bug_info
+
+            if update.has_key('Reboot') and  update['Reboot']:
+                INFO += '    NOTE: reboot needed\n'
+            if update.has_key('Relogin') and  update['Relogin']:
+                INFO += '    NOTE: relogin needed\n'
+            if update.has_key('Restart') and update['Restart']:
+                INFO += '    NOTE: restart needed\n'
+
+        return INFO
+
     def _new_doc(self):
         print "Creating new updates.xml file..."
         doc = minidom.Document()
@@ -64,14 +180,16 @@ class Updates:
         else:
             self._new_doc()
             self.next = 0
-
-    def _insert(self, parent, name, attrs={}, text=None):
+    def _insert(self, parent, name, attrs={}, text=None, data=None):
         """ Helper function to trivialize inserting an element into the doc """
         child = self.doc.createElement(name)
         for item in attrs.items():
             child.setAttribute(item[0], unicode(item[1]))
         if text:
             txtnode = self.doc.createTextNode(unicode(text))
+            child.appendChild(txtnode)
+        if data:
+            txtnode = self.doc.createCDATASection(unicode(data))
             child.appendChild(txtnode)
         parent.appendChild(child)
         return child
@@ -99,7 +217,8 @@ class Updates:
         issued_time = times[0]
         self._insert(root, 'issued', attrs={ 'date' : issued_time })
 
-        self._insert(root, 'description', text=update['Description'])
+        html = self.get_patch_info(update, True)
+        self._insert(root, 'description', data=html)
 
 class UpdateInfo:
     def __init__(self, patch = None, updates = None, cache = None):
@@ -144,13 +263,16 @@ class UpdateInfo:
             self._new_doc()
             self.next = 0
 
-    def _insert(self, parent, name, attrs={}, text=None):
+    def _insert(self, parent, name, attrs={}, text=None, data=None):
         """ Helper function to trivialize inserting an element into the doc """
         child = self.doc.createElement(name)
         for item in attrs.items():
             child.setAttribute(item[0], unicode(item[1]))
         if text:
             txtnode = self.doc.createTextNode(unicode(text))
+            child.appendChild(txtnode)
+        if data:
+            txtnode = self.doc.createCDATASection(unicode(data))
             child.appendChild(txtnode)
         parent.appendChild(child)
         return child
