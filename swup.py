@@ -15,9 +15,8 @@ import rpm
 import subprocess as sub
 import distutils
 
-update_repo="http://anashif-desktop.jf.intel.com/~anashif/tizen-pc/updates"
-update_cache="/var/cache/updates"
-
+update_repo="http://10.0.0.140/~anashif/updates"
+update_cache="/var/cache/updatemanager"
 
 
 class FakeSecHead(object):
@@ -61,14 +60,14 @@ def probe_updates():
     print "Checking for new updates..."
     response = urllib2.urlopen("%s/data/updatemd.xml" % update_repo )
     updatemd = response.read()
-    if not os.path.exists("%s/data" %update_cache):
-        os.mkdir("%s/data" %update_cache)
+    if not os.path.exists("%s/download/metadata" %update_cache):
+        os.mkdir("%s/download/metadata" %update_cache)
 
-    fp = open("%s/data/updatemd.xml" % update_cache , "w")
+    fp = open("%s/download/metadata/updatemd.xml" % update_cache , "w")
     fp.write(updatemd)
     fp.close()
 
-    updatemd_local = open("%s/data/updatemd.xml" % update_cache )
+    updatemd_local = open("%s/download/metadata/updatemd.xml" % update_cache )
     root = etree.XML(updatemd_local.read())
     data = root.xpath("//data[@type='updates']")[0]
     loc = data.xpath("location")[0]
@@ -76,8 +75,8 @@ def probe_updates():
     chksum = data.xpath("checksum")[0]
     chksum_type = chksum.attrib['type']
     
-    if os.path.exists("%s/data/updates.xml" % update_cache):
-        cur_sum = checksum("%s/data/updates.xml" % update_cache, checksum_type=chksum_type) 
+    if os.path.exists("%s/download/metadata/updates.xml" % update_cache):
+        cur_sum = checksum("%s/download/metadata/updates.xml" % update_cache, checksum_type=chksum_type) 
         if cur_sum ==  chksum.text:
             print "Using file from cache, no new updates on server."
         else:
@@ -91,7 +90,7 @@ def parse_updates():
 
     updates = {}
 
-    fp = open("%s/data/updates.xml" % update_cache , "r")
+    fp = open("%s/download/metadata/updates.xml" % update_cache , "r")
     updates_root = etree.XML(fp.read())
     updates_el = updates_root.xpath("//update")
     for update in updates_el:
@@ -110,22 +109,22 @@ def parse_updates():
 def download_update(update_data):
     u = update_data
     location = u['location']
-    if not os.path.exists("%s/downloads" % (update_cache)):
-        os.mkdir("%s/downloads" % (update_cache))
-    if not os.path.exists("%s/downloads/%s" % (update_cache,location)):
+    if not os.path.exists("%s/download" % (update_cache)):
+        os.mkdir("%s/download" % (update_cache))
+    if not os.path.exists("%s/download/%s/download_done" % (update_cache, u['id'] )):
         print "Downloading %s/%s" % (update_repo, location)
         update_file = urllib2.urlopen("%s/%s" % (update_repo, location) )
         location = os.path.basename(location)
         announced_csum = u['checksum']
         update_raw = update_file.read()
-        fp = open("%s/downloads/%s" % (update_cache,location) , "w")
+        fp = open("%s/download/%s" % (update_cache,location) , "w")
         fp.write(update_raw)
         fp.close()
-        downloaded_csum = checksum("%s/downloads/%s" % (update_cache,location), "sha256")
+        downloaded_csum = checksum("%s/download/%s" % (update_cache,location), "sha256")
         # Verify Checksum
         if downloaded_csum != announced_csum:
             print "Error: Checksum mismatch"
-            os.remove("%s/downloads/%s" % (update_cache,location))
+            os.remove("%s/download/%s" % (update_cache,location))
     else:
         print "%s already downloaded" % location    
 
@@ -145,13 +144,13 @@ def get_new_update_list(location):
     up = urllib2.urlopen("%s/%s" % (update_repo, location) )
     import gzip
     update_raw = up.read()
-    fp = open("%s/data/updates.xml.gz" % update_cache , "w")
+    fp = open("%s/download/metadata/updates.xml.gz" % update_cache , "w")
     fp.write(update_raw)
     fp.close()
-    f = gzip.open("%s/data/updates.xml.gz" % update_cache, 'rb')
+    f = gzip.open("%s/download/metadata/updates.xml.gz" % update_cache, 'rb')
     file_content = f.read()
     f.close()
-    fp = open("%s/data/updates.xml" % update_cache , "w")
+    fp = open("%s/download/metadata/updates.xml" % update_cache , "w")
     fp.write(file_content)
     fp.close()
 
@@ -186,17 +185,19 @@ def pack(target):
     print_info('%s.zip' %target)
 
 def unpack(location, update_id):
-    os.mkdir("%s/downloads/%s" %(update_cache, update_id))
-    zfile = zipfile.ZipFile("%s/downloads/%s" % (update_cache,location))
+    #os.mkdir("%s/download/%s" %(update_cache, update_id))
+    zfile = zipfile.ZipFile("%s/download/%s/%s" % (update_cache,update_id, location))
     for name in zfile.namelist():            
         (dirname, filename) = os.path.split(name)
-        #print "Decompressing " + filename + " on " + dirname
-        if not os.path.exists("%s/downloads/%s" % (update_cache, dirname)):
-            os.mkdir("%s/downloads/%s" % (update_cache, dirname))            
+        print "Decompressing " + filename + " on " + dirname
+        if not os.path.exists("%s/download/%s/%s" % (update_cache, update_id, dirname)):
+            os.mkdir("%s/download/%s/%s" % (update_cache, update_id, dirname))            
         if filename != "":
-            fd = open("%s/downloads/%s" % (update_cache, name),"w")
+            fd = open("%s/download/%s/%s" % (update_cache, update_id, name),"w")
             fd.write(zfile.read(name))
             fd.close()
+
+    os.rename("%s/download/%s/%s" % (update_cache,update_id, update_id), "%s/download/%s/content" % (update_cache,update_id))
 
 
 def prepare_update(update_data, download):
@@ -204,14 +205,14 @@ def prepare_update(update_data, download):
     location = u['location']
     update_id = u['id']
     # unzip
-    if os.path.exists("%s/downloads/%s" % (update_cache,location)) and not os.path.exists("%s/downloads/%s" % (update_cache,update_id)):
+    if os.path.exists("%s/download/%s" % (update_cache,update_id)) and not os.path.exists("%s/download/%s/content" % (update_cache,update_id)):
         print "Unpacking %s" %location
         unpack(location, update_id)
     else:
         print "Update %s already unpacked" % update_id
 
     repodir = "%s/repos.d" %update_cache
-    repourl = "file://%s/downloads/%s" % (update_cache, update_id)
+    repourl = "file://%s/download/%s/content" % (update_cache, update_id)
     if not os.path.exists("%s/%s.repo" % (repourl, update_id)):
         os.system("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
     if not download:
@@ -222,17 +223,18 @@ def install_update(update_data):
     location = u['location']
     update_id = u['id']
     # unzip
-    if not os.path.exists("%s/downloads/%s" % (update_cache,update_id)):
+    if not os.path.exists("%s/download/%s" % (update_cache,update_id)):
         prepare_update(update_data, False)
 
     repodir = "%s/repos.d" %update_cache
-    repourl = "file://%s/downloads/%s" % (update_cache, update_id)
+    repourl = "file://%s/download/%s/content" % (update_cache, update_id)
     if os.path.exists("%s/%s.repo" % (repourl, update_id)):
         os.system("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
     os.system("zypper --quiet  --non-interactive --reposd-dir %s patch --repo %s " % (repodir, update_id) )
     if not os.path.exists("%s/installed" % (update_cache)):
         os.mkdir("%s/installed" % (update_cache))
-    shutil.copyfile("%s/downloads/%s/%s" %(update_cache, update_id, update_id), "%s/installed/%s" % (update_cache, update_id))
+    shutil.copyfile("%s/download/%s/content/%s" %(update_cache, update_id, update_id), "%s/installed/%s" % (update_cache, update_id))
+    print "Finished installing %s." % update_id 
 
 
 def apply_update(update_data):
@@ -281,7 +283,11 @@ parser.add_option("-q", "--quiet",
 
 if not os.path.exists(update_cache):
     os.mkdir("%s" % update_cache)
-    os.mkdir("%s/downloads" % update_cache)
+if not os.path.exists("%s/download" % update_cache):
+    os.mkdir("%s/download" % update_cache)
+    os.mkdir("%s/download/metadata" % update_cache)
+
+if not os.path.exists("%s/repos.d" % update_cache):
     os.mkdir("%s/repos.d" % update_cache)
 
 if options.osver:
@@ -299,10 +305,10 @@ if options.downloadonly:
 if options.prepare is not None:
     probe_updates()
     updates = parse_updates()
-    if not updates.has_key(options.install):
-        print "%s is not available for installation. Abort." %options.install
+    if not updates.has_key(options.prepare):
+        print "%s is not available for installation. Abort." %options.prepare
         sys.exit()
-    u = updates[options.install]
+    u = updates[options.prepare]
     download_update(u)
     prepare_update(u, False)
 

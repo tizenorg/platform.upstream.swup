@@ -2,14 +2,18 @@
 
 BUILD_OLD=$1
 BUILD_NEW=$2
+if [ -z "$BUILD_OLD" -o -z "$BUILD_NEW" ]; then
+    echo "You need to provide old and new snapshot IDs"
+    exit 1
+fi
 USER="nashif"
-PASS=""
+PASS="fr!s1neu"
 WGET="/usr/bin/wget -q --timestamping "
 DAILY="/pc/releases/daily/trunk"
 WEEKLY="/pc/releases/weekly/trunk"
-SNAPSHOTS="/${RELEASE_TYPE}"
+SNAPSHOTS="/snapshots/trunk/pc/"
 
-RELEASE_TYPE=$DAILY
+RELEASE_TYPE=$SNAPSHOTS
 
 BASE_DIR=$PWD
 wget  https://$USER:$PASS@download.tz.otcshare.org/${RELEASE_TYPE}/${BUILD_OLD}/images/gnome/gnome-${BUILD_OLD}.packages -O old
@@ -49,4 +53,4 @@ done
 IFS=$OLD_IFS
 
 
-rm $BASE_DIR/new $BASE_DIR/old $BASE_DIR/p0 $BASE_DIR/{p1,new_packages}
+#rm $BASE_DIR/new $BASE_DIR/old $BASE_DIR/p0 $BASE_DIR/{p1,new_packages}

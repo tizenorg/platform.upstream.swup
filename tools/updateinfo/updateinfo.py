@@ -209,7 +209,7 @@ class UpdateInfo:
         #self._insert(collection, 'name', text=update.release.long_name)
 
         for u in updates:
-            filename = u['binary']
+            filename = "rpms/%s" % (os.path.basename(u['binary']))
             if u['header'][rpm.RPMTAG_SOURCEPACKAGE] or 'debuginfo' in u['binary']:
                 continue
             pkg = self._insert(collection, 'package', attrs={
