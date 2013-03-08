@@ -217,6 +217,13 @@ class Updates:
         issued_time = times[0]
         self._insert(root, 'issued', attrs={ 'date' : issued_time })
 
+        if update.has_key('Reboot') and  update['Reboot']:
+            self._insert(root, 'reboot_required', text='True')
+        if update.has_key('Relogin') and  update['Relogin']:
+            self._insert(root, 'relogin_required', text='True')
+        if update.has_key('Restart') and update['Restart']:
+            self._insert(root, 'restart_required', text='True')
+
         html = self.get_patch_info(update, True)
         self._insert(root, 'description', data=html)
 
@@ -312,13 +319,14 @@ class UpdateInfo:
                         'id'   : cve
                 })
 
-        for bug in update['Bugs']:
-            self._insert(refs, 'reference', attrs={
-                    'type' : 'bugzilla',
-                    'href' : 'http://bugs.tizen.org/show_bug.cgi?id=%s' %bug,
-                    'id'   : bug,
-                    'title': 'Bug number %s' %bug
-            })
+        if update.has_key("Bugs"):
+            for bug in update['Bugs']:
+                self._insert(refs, 'reference', attrs={
+                        'type' : 'bugzilla',
+                        'href' : 'http://bugs.tizen.org/show_bug.cgi?id=%s' %bug,
+                        'id'   : bug,
+                        'title': 'Bug number %s' %bug
+                })
         root.appendChild(refs)
 
         ## Errata description

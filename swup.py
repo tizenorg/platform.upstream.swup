@@ -89,7 +89,6 @@ def probe_updates():
 def parse_updates():
 
     updates = {}
-
     fp = open("%s/download/metadata/updates.xml" % update_cache , "r")
     updates_root = etree.XML(fp.read())
     updates_el = updates_root.xpath("//update")
@@ -223,19 +222,24 @@ def install_update(update_data):
     location = u['location']
     update_id = u['id']
     # unzip
-    if not os.path.exists("%s/download/%s" % (update_cache,update_id)):
+    if not os.path.exists("%s/download/%s/content" % (update_cache,update_id)):
         prepare_update(update_data, False)
 
     repodir = "%s/repos.d" %update_cache
     repourl = "file://%s/download/%s/content" % (update_cache, update_id)
-    if os.path.exists("%s/%s.repo" % (repourl, update_id)):
+    if not os.path.exists("%s/%s.repo" % (repodir, update_id)):
         os.system("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
-    os.system("zypper --quiet  --non-interactive --reposd-dir %s patch --repo %s " % (repodir, update_id) )
+    print "zypper -n  --reposd-dir %s patch --with-interactive  --repo %s " % (repodir, update_id) 
+    os.system("zypper -n  --reposd-dir %s patch --with-interactive --repo %s " % (repodir, update_id) )
     if not os.path.exists("%s/installed" % (update_cache)):
         os.mkdir("%s/installed" % (update_cache))
     shutil.copyfile("%s/download/%s/content/%s" %(update_cache, update_id, update_id), "%s/installed/%s" % (update_cache, update_id))
-    print "Finished installing %s." % update_id 
 
+    print "Finished installing %s." % update_id 
+    for line in fileinput.input("/etc/os-release", inplace=1):
+        print line.replace(current_version, u["version"]),
+    for line in fileinput.input("/etc/tizen-release", inplace=1):
+        print line.replace(current_version, u["version"]),
 
 def apply_update(update_data):
     pass
@@ -313,7 +317,7 @@ if options.prepare is not None:
     prepare_update(u, False)
 
 if options.install is not None:
-    probe_updates()
+    #probe_updates()
     updates = parse_updates()
     if not updates.has_key(options.install):
         print "%s is not available for installation. Abort." %options.install

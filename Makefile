@@ -1,3 +1,4 @@
+all:
 
 install:
 	install -D -m 755 swup.py ${DESTDIR}/usr/bin/swup
