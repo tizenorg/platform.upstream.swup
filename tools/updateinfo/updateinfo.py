@@ -80,7 +80,7 @@ class Updates:
         if is_html:
             import markup
             page = markup.page()
-            page.h3(update['Title'])
+            #page.h3(update['Title'])
             self._desc_to_html(page, update['Description'])
 
             if update.has_key("Bugs"):
