@@ -1,5 +1,5 @@
 Name:           swup
-Version:        0.1
+Version:        0.2
 Release:        0
 License:        GPL-2.0+
 Summary:        Software Update Tool
