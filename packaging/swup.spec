@@ -22,7 +22,7 @@ Software Update Tool.
 
 %install
 %make_install
-
+rm -f %{buildroot}%{_unitdir}/system-update.target
 %install_service system-update.target.wants system-update.service
 
 %files
@@ -31,7 +31,7 @@ Software Update Tool.
 %{_bindir}/system-update
 %{_bindir}/updateinfo
 %{_unitdir}/system-update.service
-%{_unitdir}/system-update.target
+#%{_unitdir}/system-update.target
 %{_unitdir}/system-update.target.wants/system-update.service
 
 %changelog
