@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import yaml
 from xml.dom import minidom
 import rpm
