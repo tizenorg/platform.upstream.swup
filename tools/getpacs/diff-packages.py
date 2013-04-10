@@ -20,11 +20,13 @@ def http_get(url):
     return html_page
 
 def download(url, out):
-    ret = http_get(url)
     if not os.path.exists(out):
+        ret = http_get(url)
         cache = open(out, "w")
         cache.write(ret.read())
         cache.close()
+    else:
+        print "Already exists: %s" % out
 
 def get_package_list(image_name, base_url, build_id):
     cache_dir = "cache"
@@ -111,7 +113,6 @@ p2 = get_package_list(options.image, release_url, options.new)
 if not os.path.exists('new'):
     os.makedirs('new')
 for p in Set(p2).difference(Set(p1)):
-    print "Fetching %s from %s" % (p, options.new)
     if "noarch" in p:
         download("%s/%s/repos/pc/x86_64/packages/noarch/%s.rpm" %(release_url, options.new, p), "new/%s.rpm" %p)
     else:
@@ -120,7 +121,6 @@ for p in Set(p2).difference(Set(p1)):
 if not os.path.exists('old'):
     os.makedirs('old')
 for p in Set(p1).difference(Set(p2)):
-    print "Fetching %s from %s" % (p, options.old)
     if "noarch" in p:
         download("%s/%s/repos/pc/x86_64/packages/noarch/%s.rpm" %(release_url, options.old, p), "old/%s.rpm" %p)
     else:
