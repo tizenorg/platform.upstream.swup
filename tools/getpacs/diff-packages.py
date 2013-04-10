@@ -66,8 +66,7 @@ def get_package_list2(image_name, base_url, build_id):
         cache = open(cache_file, "w")
         cache.write(package_file.read())
         cache.close()
-    else:
-        package_file = open(cache_file, "rb")
+    package_file = open(cache_file, "rb")
 
     packages = {}
 
