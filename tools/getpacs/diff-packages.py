@@ -107,23 +107,33 @@ else:
 username = options.username
 password = options.password
 
-p1 = get_package_list(options.image, release_url, options.old)
-p2 = get_package_list(options.image, release_url, options.new)
+p1 = get_package_list2(options.image, release_url, options.old)
+p2 = get_package_list2(options.image, release_url, options.new)
 
-if not os.path.exists('new'):
-    os.makedirs('new')
-for p in Set(p2).difference(Set(p1)):
-    if "noarch" in p:
-        download("%s/%s/repos/pc/x86_64/packages/noarch/%s.rpm" %(release_url, options.new, p), "new/%s.rpm" %p)
-    else:
-        download("%s/%s/repos/pc/x86_64/packages/x86_64/%s.rpm" %(release_url, options.new, p), "new/%s.rpm" %p)
+pkgs1 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p1.iteritems()}
+pkgs2 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p2.iteritems()}
+newpkgs = [pkg.split('|')[0] for pkg in pkgs2.difference(pkgs1)]
+
+pkgs1 = {'%s|%s' % (pkg, attr['version']) for pkg, attr in p1.iteritems()}
+pkgs2 = {'%s|%s' % (pkg, attr['version']) for pkg, attr in p2.iteritems()}
+changedpkgs = [pkg.split('|')[0] for pkg in pkgs2.difference(pkgs1) if pkg.split('|')[0] in p1]
 
 if not os.path.exists('old'):
     os.makedirs('old')
-for p in Set(p1).difference(Set(p2)):
-    if "noarch" in p:
-        download("%s/%s/repos/pc/x86_64/packages/noarch/%s.rpm" %(release_url, options.old, p), "old/%s.rpm" %p)
-    else:
-        download("%s/%s/repos/pc/x86_64/packages/x86_64/%s.rpm" %(release_url, options.old, p), "old/%s.rpm" %p)
+if not os.path.exists('new'):
+    os.makedirs('new')
+if not os.path.exists('rpms'):
+    os.makedirs('rpms')
 
+for p in newpkgs:
+    rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
+    arch = p2[p]['arch']
+    download("%s/%s/repos/pc/x86_64/packages/%s/%s" % (release_url, options.new, arch, rpm), "new/%s" % rpm)
+
+for p in changedpkgs:
+    rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
+    arch = p1[p]['arch']
+    download("%s/%s/repos/pc/x86_64/packages/%s/%s" % (release_url, options.old, arch, rpm), "old/%s" % rpm)
+    rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
+    download("%s/%s/repos/pc/x86_64/packages/%s/%s" %(release_url, options.new, arch, rpm), "rpms/%s" % rpm)
 
