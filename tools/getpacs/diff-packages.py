@@ -115,20 +115,24 @@ changedpkgs = [pkg.split('|')[0] for pkg in pkgs2.difference(pkgs1) if pkg.split
 old_pkgs_dir = os.path.join(CACHE_DIR, 'rpms')
 if not os.path.exists(old_pkgs_dir):
     os.makedirs(old_pkgs_dir)
-if not os.path.exists('new'):
-    os.makedirs('new')
-if not os.path.exists('rpms'):
-    os.makedirs('rpms')
+
+update_dir = "update-%s-to-%s" % (options.old, options.new)
+new_pkgs_dir = os.path.join(update_dir, 'new')
+if not os.path.exists(new_pkgs_dir):
+    os.makedirs(new_pkgs_dir)
+changed_pkgs_dir = os.path.join(update_dir, 'rpms')
+if not os.path.exists(changed_pkgs_dir):
+    os.makedirs(changed_pkgs_dir)
 
 for p in newpkgs:
     rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
     arch = p2[p]['arch']
-    download("%s/%s/repos/pc/x86_64/packages/%s/%s" % (release_url, options.new, arch, rpm), "new/%s" % rpm)
+    download("%s/%s/repos/pc/x86_64/packages/%s/%s" % (release_url, options.new, arch, rpm), os.path.join(new_pkgs_dir, rpm))
 
 for p in changedpkgs:
     rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
     arch = p1[p]['arch']
     download("%s/%s/repos/pc/x86_64/packages/%s/%s" % (release_url, options.old, arch, rpm), os.path.join(old_pkgs_dir, rpm))
     rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
-    download("%s/%s/repos/pc/x86_64/packages/%s/%s" %(release_url, options.new, arch, rpm), "rpms/%s" % rpm)
+    download("%s/%s/repos/pc/x86_64/packages/%s/%s" %(release_url, options.new, arch, rpm), os.path.join(changed_pkgs_dir, rpm))
 
