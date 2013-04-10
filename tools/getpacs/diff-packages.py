@@ -13,8 +13,9 @@ password = ""
 def http_get(url):
     print "Downloading %s" %url
     request = urllib2.Request(url)
-    base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-    request.add_header("Authorization", "Basic %s" % base64string)
+    if username and password:
+        base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+        request.add_header("Authorization", "Basic %s" % base64string)
     html_page = urllib2.urlopen(request)
     return html_page
 
@@ -100,6 +101,9 @@ if options.type == "weekly":
     release_url = "%s/%s" %(BASE, WEEKLY)
 else:
     release_url = "%s/%s" %(BASE, SNAPSHOTS)
+
+username = options.username
+password = options.password
 
 p1 = get_package_list(options.image, release_url, options.old)
 p2 = get_package_list(options.image, release_url, options.new)
