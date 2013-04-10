@@ -15,7 +15,7 @@ import rpm
 import subprocess as sub
 import distutils
 
-update_repo="http://10.0.0.140/~anashif/updates"
+update_repo="http://www.planux.com/updates"
 update_cache="/var/cache/updatemanager"
 
 
