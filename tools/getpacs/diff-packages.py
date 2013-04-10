@@ -6,9 +6,16 @@ import urllib2
 from optparse import OptionParser
 import os
 import re, base64
+import configparser
 
 username = ""
 password = ""
+
+def read_config(config_file):
+    config_file = os.path.userexpand(config_file)
+    parser = configparser.SafeConfigParser()
+    parser.read(config_file)
+    return parser
 
 def http_get(url):
     print "Downloading %s" %url
@@ -90,6 +97,8 @@ parser.add_option("-u", "--username",  dest="username", metavar="USERNAME", help
 parser.add_option("-p", "--password",  dest="password", metavar="PASSWD", help="Password for https")
 
 (options, args) = parser.parse_args()
+
+config = parse_config('~/.swuprc')
 
 DAILY="/pc/releases/daily/trunk"
 WEEKLY="/pc/releases/weekly/trunk"
