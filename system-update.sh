@@ -7,10 +7,12 @@ rm /system-update
 
 # call updater
 
+plymouth update --status="Updating..."
+
 for i in `ls /var/cache/updatemanager/install`; do
 	UPDATE=$(echo $i | sed -e 's/^[0-9]*-//')
 	mkdir -p /var/cache/zypp/packages/$UPDATE/rpms
-	/usr/bin/swup -i  $UPDATE | tee /var/log/system-update.log
+	/usr/bin/swup -i  $UPDATE 2>&1 | tee /var/log/system-update.log
 	rm /var/cache/updatemanager/install/$i
 done
 
