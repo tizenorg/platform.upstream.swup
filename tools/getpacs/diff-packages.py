@@ -35,31 +35,6 @@ def download(url, out):
     else:
         print "Already exists: %s" % out
 
-def get_package_list(image_name, base_url, build_id):
-    cache_dir = "cache"
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
-    cache_file = "%s/%s-%s.packages" %(cache_dir, image_name, build_id )
-    package_file = None
-    if not os.path.exists(cache_file):
-        image_packages = "%s/%s/images/%s/%s-%s.packages" %(base_url, build_id, image_name, image_name, build_id )
-        package_file = http_get(image_packages)
-        cache = open(cache_file, "w")
-        cache.write(package_file.read())
-        cache.close()
-    package_file = open(cache_file, "rb")
-
-    packages = []
-
-    pkgreader = csv.reader(package_file, delimiter=' ', quotechar='|')
-    for row in pkgreader:
-        pkg = row[0].split(".")
-        name = "%s-%s.%s" %(pkg[0], row[1], pkg[1])
-        packages.append(name)
-
-    package_file.close()
-    return packages
-
 def get_package_list2(image_name, base_url, build_id):
     cache_dir = "cache"
     if not os.path.exists(cache_dir):
