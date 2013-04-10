@@ -25,8 +25,11 @@ def download(url, out):
         cache.write(ret.read())
         cache.close()
 
-def get_package_lists2(image_name, base_url, build_id):
-    cache_file = "cache/%s-%s.packages" %(image_name, build_id )
+def get_package_list(image_name, base_url, build_id):
+    cache_dir = "cache"
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+    cache_file = "%s/%s-%s.packages" %(cache_dir, image_name, build_id )
     package_file = None
     if not os.path.exists(cache_file):
         image_packages = "%s/%s/images/%s/%s-%s.packages" %(base_url, build_id, image_name, image_name, build_id )
@@ -34,8 +37,7 @@ def get_package_lists2(image_name, base_url, build_id):
         cache = open(cache_file, "w")
         cache.write(package_file.read())
         cache.close()
-    else:
-        package_file = open(cache_file, "rb")
+    package_file = open(cache_file, "rb")
 
     packages = []
 
@@ -48,8 +50,11 @@ def get_package_lists2(image_name, base_url, build_id):
     package_file.close()
     return packages
 
-def get_package_lists(image_name, base_url, build_id):
-    cache_file = "cache/%s-%s.packages" %(image_name, build_id )
+def get_package_list2(image_name, base_url, build_id):
+    cache_dir = "cache"
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+    cache_file = "%s/%s-%s.packages" %(cache_dir, image_name, build_id )
     package_file = None
     if not os.path.exists(cache_file):
         image_packages = "%s/%s/images/%s/%s-%s.packages" %(base_url, build_id, image_name, image_name, build_id )
@@ -79,6 +84,8 @@ parser.add_option("-o", "--old",  dest="old", metavar="OLD", help="Old snapshot"
 parser.add_option("-n", "--new",  dest="new", metavar="NEW", help="New snapshot")
 parser.add_option("-t", "--type",  dest="type", metavar="TYPE", help="Release type")
 parser.add_option("-i", "--image",  dest="image", metavar="IMAGE", help="Image Name")
+parser.add_option("-u", "--username",  dest="username", metavar="USERNAME", help="Username for https")
+parser.add_option("-p", "--password",  dest="password", metavar="PASSWD", help="Password for https")
 
 (options, args) = parser.parse_args()
 
@@ -94,17 +101,25 @@ if options.type == "weekly":
 else:
     release_url = "%s/%s" %(BASE, SNAPSHOTS)
 
-p1 = get_package_lists2(options.image, release_url, options.old)
-p2 = get_package_lists2(options.image, release_url, options.new)
+p1 = get_package_list(options.image, release_url, options.old)
+p2 = get_package_list(options.image, release_url, options.new)
 
-diff =  Set(p2).difference(Set(p1))
-for p in diff:
-    print "Fetching %s" %p
+if not os.path.exists('new'):
+    os.makedirs('new')
+for p in Set(p2).difference(Set(p1)):
+    print "Fetching %s from %s" % (p, options.new)
     if "noarch" in p:
-        download("%s/%s/repos/pc/x86_64/packages/noarch/%s.rpm" %(release_url, options.new, p), "%s.rpm" %p)
+        download("%s/%s/repos/pc/x86_64/packages/noarch/%s.rpm" %(release_url, options.new, p), "new/%s.rpm" %p)
     else:
-        download("%s/%s/repos/pc/x86_64/packages/x86_64/%s.rpm" %(release_url, options.new, p), "%s.rpm" %p)
+        download("%s/%s/repos/pc/x86_64/packages/x86_64/%s.rpm" %(release_url, options.new, p), "new/%s.rpm" %p)
 
-
+if not os.path.exists('old'):
+    os.makedirs('old')
+for p in Set(p1).difference(Set(p2)):
+    print "Fetching %s from %s" % (p, options.old)
+    if "noarch" in p:
+        download("%s/%s/repos/pc/x86_64/packages/noarch/%s.rpm" %(release_url, options.old, p), "old/%s.rpm" %p)
+    else:
+        download("%s/%s/repos/pc/x86_64/packages/x86_64/%s.rpm" %(release_url, options.old, p), "old/%s.rpm" %p)
 
 
