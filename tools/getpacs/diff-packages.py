@@ -6,14 +6,14 @@ import urllib2
 from optparse import OptionParser
 import os
 import re, base64
-import configparser
+import ConfigParser
 
 username = ""
 password = ""
 
 def read_config(config_file):
-    config_file = os.path.userexpand(config_file)
-    parser = configparser.SafeConfigParser()
+    config_file = os.path.expanduser(config_file)
+    parser = ConfigParser.SafeConfigParser()
     parser.read(config_file)
     return parser
 
@@ -98,7 +98,7 @@ parser.add_option("-p", "--password",  dest="password", metavar="PASSWD", help="
 
 (options, args) = parser.parse_args()
 
-config = parse_config('~/.swuprc')
+config = read_config('~/.swuprc')
 
 DAILY="/pc/releases/daily/trunk"
 WEEKLY="/pc/releases/weekly/trunk"
@@ -112,8 +112,14 @@ if options.type == "weekly":
 else:
     release_url = "%s/%s" %(BASE, SNAPSHOTS)
 
-username = options.username
-password = options.password
+if options.username:
+    username = options.username
+elif config.has_option('DEFAULT', 'username'):
+    username = config.get('DEFAULT', 'username')
+if options.password:
+    password = options.password
+elif config.has_option('DEFAULT', 'password'):
+    password = config.get('DEFAULT', 'password')
 
 p1 = get_package_list2(options.image, release_url, options.old)
 p2 = get_package_list2(options.image, release_url, options.new)
