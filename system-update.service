@@ -2,12 +2,12 @@
 Description=Tizen System Updater
 DefaultDependencies=no
 OnFailure=reboot.target
-Requires=systemd-remount-fs.service connman.service
-After=systemd-remount-fs.service connman.service
+Requires=systemd-remount-fs.service plymouth-update.service
+After=systemd-remount-fs.service plymouth-update.service
 
 [Service]
 Type=oneshot
 #StandardInput=tty-force
-#StandardOutput=tty-force
+StandardOutput=tty-force
 RemainAfterExit=no
 ExecStart=/usr/bin/system-update
