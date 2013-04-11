@@ -68,6 +68,7 @@ parser.add_option("-t", "--type",  dest="type", metavar="TYPE", help="Release ty
 parser.add_option("-i", "--image",  dest="image", metavar="IMAGE", help="Image Name")
 parser.add_option("-u", "--username",  dest="username", metavar="USERNAME", help="Username for https")
 parser.add_option("-p", "--password",  dest="password", metavar="PASSWD", help="Password for https")
+parser.add_option("--outdir",  dest="outdir", help="Output directory")
 
 (options, args) = parser.parse_args()
 
@@ -116,11 +117,11 @@ old_pkgs_dir = os.path.join(CACHE_DIR, 'rpms')
 if not os.path.exists(old_pkgs_dir):
     os.makedirs(old_pkgs_dir)
 
-update_dir = "update-%s-to-%s" % (options.old, options.new)
-new_pkgs_dir = os.path.join(update_dir, 'new')
+outdir = options.outdir if options.outdir else "update-%s-to-%s" % (options.old, options.new)
+new_pkgs_dir = os.path.join(outdir, 'new')
 if not os.path.exists(new_pkgs_dir):
     os.makedirs(new_pkgs_dir)
-changed_pkgs_dir = os.path.join(update_dir, 'rpms')
+changed_pkgs_dir = os.path.join(outdir, 'rpms')
 if not os.path.exists(changed_pkgs_dir):
     os.makedirs(changed_pkgs_dir)
 
