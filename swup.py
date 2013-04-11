@@ -237,11 +237,13 @@ def install_update(update_data):
         os.mkdir("%s/installed" % (update_cache))
     shutil.copyfile("%s/download/%s/content/%s" %(update_cache, update_id, update_id), "%s/installed/%s" % (update_cache, update_id))
 
+    os_release = get_current_version()
+    current_version = os_release['version_id'].strip('"')
     print "Finished installing %s. (from %s to %s)" % (update_id, current_version, u['version'])
     for line in fileinput.input("/etc/os-release", inplace=1):
-        print line.replace(current_version, u["version"]),
+        print line.replace(current_version, u['version']),
     for line in fileinput.input("/etc/tizen-release", inplace=1):
-        print line.replace(current_version, u["version"]),
+        print line.replace(current_version, u['version']),
 
 def apply_update(update_data):
     pass
