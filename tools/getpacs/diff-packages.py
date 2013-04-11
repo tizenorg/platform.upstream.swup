@@ -42,7 +42,7 @@ def download(url, fname, outdir, cachedir):
         if not os.path.exists(dest_file):
             shutil.copy2(cached_file, dest_file)
 
-def get_package_list(image_name, base_url, build_id, cachedir):
+def get_package_list(image_name, base_url, build_id, outdir, cachedir):
     cache_file = "%s/%s-%s.packages" %(cachedir, image_name, build_id )
     package_file = None
     if not os.path.exists(cache_file):
@@ -52,19 +52,17 @@ def get_package_list(image_name, base_url, build_id, cachedir):
         cache = open(cache_file, "w")
         cache.write(package_file.read())
         cache.close()
-    package_file = open(cache_file, "rb")
+    with open(cache_file, "rb") as package_file:
+        packages = {}
+        pkgreader = csv.reader(package_file, delimiter=' ', quotechar='|')
+        for row in pkgreader:
+            pkg = row[0].split(".")
+            if len(row)>2:
+                packages[pkg[0]] = {'scm': row[2], 'version': row[1], 'arch': pkg[1]}
+            else:
+                packages[pkg[0]] = {'scm': None, 'version': row[1], 'arch': pkg[1]}
+    shutil.copy2(cache_file, os.path.join(outdir, "packages"))
 
-    packages = {}
-
-    pkgreader = csv.reader(package_file, delimiter=' ', quotechar='|')
-    for row in pkgreader:
-        pkg = row[0].split(".")
-        if len(row)>2:
-            packages[pkg[0]] = {'scm': row[2], 'version': row[1], 'arch': pkg[1]}
-        else:
-            packages[pkg[0]] = {'scm': None, 'version': row[1], 'arch': pkg[1]}
-
-    package_file.close()
     return packages
 
 parser = OptionParser()
@@ -108,8 +106,18 @@ packages_files_dir = os.path.join(CACHE_DIR, 'packages-files')
 if not os.path.exists(packages_files_dir):
     os.makedirs(packages_files_dir)
 
-p1 = get_package_list(options.image, release_url, options.old, packages_files_dir)
-p2 = get_package_list(options.image, release_url, options.new, packages_files_dir)
+outdir = options.outdir if options.outdir else "update-%s-to-%s" % (options.old, options.new)
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
+else:
+    print "Cleaning up %s" % outdir
+    for filename in ['rpms', 'new']:
+        filepath = os.path.join(outdir, filename)
+        if os.path.exists(filepath):
+            shutil.rmtree(os.path.join(filepath))
+
+p1 = get_package_list(options.image, release_url, options.old, outdir, packages_files_dir)
+p2 = get_package_list(options.image, release_url, options.new, outdir, packages_files_dir)
 
 pkgs1 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p1.iteritems()}
 pkgs2 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p2.iteritems()}
@@ -123,7 +131,6 @@ cached_pkgs_dir = os.path.join(CACHE_DIR, 'rpms')
 if not os.path.exists(cached_pkgs_dir):
     os.makedirs(cached_pkgs_dir)
 
-outdir = options.outdir if options.outdir else "update-%s-to-%s" % (options.old, options.new)
 new_pkgs_dir = os.path.join(outdir, 'new')
 if not os.path.exists(new_pkgs_dir):
     os.makedirs(new_pkgs_dir)
