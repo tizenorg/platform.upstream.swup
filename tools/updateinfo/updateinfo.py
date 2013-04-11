@@ -118,7 +118,6 @@ class Updates:
         Project: %s
         Repository: %s
         Release: %s
-        Status: %s
         Packages: %s
         Description:
             %s
@@ -128,7 +127,6 @@ class Updates:
            update['Project'],
            update['Repository'],
            update['Release'],
-           update['Status'],
            ", ".join(update['Packages']),
            '\n        '.join(update['Description'].splitlines()))
 
@@ -298,7 +296,6 @@ class UpdateInfo:
         self.next = self.next + 1
         root = self._insert(self.doc.firstChild, 'update', attrs={
                 'type'      : update['Type'],
-                'status'    : update['Status'],
                 'version'   : "%04d" %self.next,
                 'from'      : 'updates@tizen.org'
         })
