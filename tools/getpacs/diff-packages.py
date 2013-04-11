@@ -7,6 +7,7 @@ from optparse import OptionParser
 import os
 import re, base64
 import ConfigParser
+import shutil
 
 USERNAME = ""
 PASSWORD = ""
@@ -27,14 +28,19 @@ def http_get(url):
     html_page = urllib2.urlopen(request)
     return html_page
 
-def download(url, out):
-    if not os.path.exists(out):
-        ret = http_get(url)
-        cache = open(out, "w")
+def download(url, fname, outdir, cachedir):
+    cached_file = os.path.join(cachedir, fname)
+    if os.path.exists(cached_file):
+        print "File cache hit: %s" % fname
+    else:
+        ret = http_get(os.path.join(url, fname))
+        cache = open(cached_file, "w")
         cache.write(ret.read())
         cache.close()
-    else:
-        print "Already exists: %s" % out
+    if outdir:
+        dest_file = os.path.join(outdir, fname)
+        if not os.path.exists(dest_file):
+            shutil.copy2(cached_file, dest_file)
 
 def get_package_list(image_name, base_url, build_id, cachedir):
     cache_file = "%s/%s-%s.packages" %(cachedir, image_name, build_id )
@@ -113,9 +119,9 @@ pkgs1 = {'%s|%s' % (pkg, attr['version']) for pkg, attr in p1.iteritems()}
 pkgs2 = {'%s|%s' % (pkg, attr['version']) for pkg, attr in p2.iteritems()}
 changedpkgs = [pkg.split('|')[0] for pkg in pkgs2.difference(pkgs1) if pkg.split('|')[0] in p1]
 
-old_pkgs_dir = os.path.join(CACHE_DIR, 'rpms')
-if not os.path.exists(old_pkgs_dir):
-    os.makedirs(old_pkgs_dir)
+cached_pkgs_dir = os.path.join(CACHE_DIR, 'rpms')
+if not os.path.exists(cached_pkgs_dir):
+    os.makedirs(cached_pkgs_dir)
 
 outdir = options.outdir if options.outdir else "update-%s-to-%s" % (options.old, options.new)
 new_pkgs_dir = os.path.join(outdir, 'new')
@@ -128,12 +134,12 @@ if not os.path.exists(changed_pkgs_dir):
 for p in newpkgs:
     rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
     arch = p2[p]['arch']
-    download("%s/%s/repos/pc/x86_64/packages/%s/%s" % (release_url, options.new, arch, rpm), os.path.join(new_pkgs_dir, rpm))
+    download("%s/%s/repos/pc/x86_64/packages/%s/" % (release_url, options.new, arch), rpm, new_pkgs_dir, cached_pkgs_dir)
 
 for p in changedpkgs:
     rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
     arch = p1[p]['arch']
-    download("%s/%s/repos/pc/x86_64/packages/%s/%s" % (release_url, options.old, arch, rpm), os.path.join(old_pkgs_dir, rpm))
+    download("%s/%s/repos/pc/x86_64/packages/%s/" % (release_url, options.old, arch), rpm, None, cached_pkgs_dir)
     rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
-    download("%s/%s/repos/pc/x86_64/packages/%s/%s" %(release_url, options.new, arch, rpm), os.path.join(changed_pkgs_dir, rpm))
+    download("%s/%s/repos/pc/x86_64/packages/%s/" %(release_url, options.new, arch), rpm, changed_pkgs_dir, cached_pkgs_dir)
 
