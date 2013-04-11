@@ -102,8 +102,8 @@ else:
             shutil.rmtree(os.path.join(filepath))
 
 # Get packages
-p1 = get_package_list(opts.image, release_url, opts.old, credentials, target_dir, packages_files_dir)
-p2 = get_package_list(opts.image, release_url, opts.new, credentials, target_dir, packages_files_dir)
+p1 = get_package_list(release_url, opts.old, opts.image, credentials, target_dir, packages_files_dir)
+p2 = get_package_list(release_url, opts.new, opts.image, credentials, target_dir, packages_files_dir)
 
 pkgs1 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p1.iteritems()}
 pkgs2 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p2.iteritems()}

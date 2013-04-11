@@ -36,16 +36,13 @@ def download(url, fname, credentials, outdir, cachedir):
         if not os.path.exists(dest_file):
             shutil.copy2(cached_file, dest_file)
 
-def get_package_list(image_name, base_url, build_id, credentials, outdir, cachedir):
-    cache_file = "%s/%s-%s.packages" %(cachedir, image_name, build_id )
-    package_file = None
+def get_package_list(base_url, build_id, image_name, credentials, out_dir, cache_dir):
+    cache_file = "%s/%s-%s.packages" % (cache_dir, image_name, build_id)
     if not os.path.exists(cache_file):
         image_packages = "%s/%s/images/%s/%s-%s.packages" %(base_url, build_id, image_name, image_name, build_id )
-        #print image_packages
         package_file = http_get(image_packages, credentials)
-        cache = open(cache_file, "w")
-        cache.write(package_file.read())
-        cache.close()
+        with open(cache_file, "w") as cache:
+            cache.write(package_file.read())
     with open(cache_file, "rb") as package_file:
         packages = {}
         pkgreader = csv.reader(package_file, delimiter=' ', quotechar='|')
@@ -55,7 +52,7 @@ def get_package_list(image_name, base_url, build_id, credentials, outdir, cached
                 packages[pkg[0]] = {'scm': row[2], 'version': row[1], 'arch': pkg[1]}
             else:
                 packages[pkg[0]] = {'scm': None, 'version': row[1], 'arch': pkg[1]}
-    shutil.copy2(cache_file, os.path.join(outdir, "packages"))
+    shutil.copy2(cache_file, os.path.join(out_dir, "packages"))
 
     return packages
 
