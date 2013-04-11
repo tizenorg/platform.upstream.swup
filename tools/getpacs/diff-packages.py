@@ -131,15 +131,21 @@ changed_pkgs_dir = os.path.join(outdir, 'rpms')
 if not os.path.exists(changed_pkgs_dir):
     os.makedirs(changed_pkgs_dir)
 
+old_repourl = "%s/%s/repos/pc/x86_64/packages/" % (release_url, options.old)
+new_repourl = "%s/%s/repos/pc/x86_64/packages/" % (release_url, options.new)
+
+with open(os.path.join(outdir, "repourl"), "w") as repourlfile:
+    repourlfile.write("%s\n" % new_repourl)
+
 for p in newpkgs:
     rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
     arch = p2[p]['arch']
-    download("%s/%s/repos/pc/x86_64/packages/%s/" % (release_url, options.new, arch), rpm, new_pkgs_dir, cached_pkgs_dir)
+    download("%s/%s" % (new_repourl, arch), rpm, new_pkgs_dir, cached_pkgs_dir)
 
 for p in changedpkgs:
     rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
     arch = p1[p]['arch']
-    download("%s/%s/repos/pc/x86_64/packages/%s/" % (release_url, options.old, arch), rpm, None, cached_pkgs_dir)
+    download("%s/%s" % (old_repourl, arch), rpm, None, cached_pkgs_dir)
     rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
-    download("%s/%s/repos/pc/x86_64/packages/%s/" %(release_url, options.new, arch), rpm, changed_pkgs_dir, cached_pkgs_dir)
+    download("%s/%s" % (new_repourl, arch), rpm, changed_pkgs_dir, cached_pkgs_dir)
 
