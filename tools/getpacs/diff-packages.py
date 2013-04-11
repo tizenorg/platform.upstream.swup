@@ -9,8 +9,6 @@ import re, base64
 import ConfigParser
 import shutil
 
-USERNAME = ""
-PASSWORD = ""
 CACHE_DIR = "cache"
 
 def read_config(config_file):
@@ -19,21 +17,21 @@ def read_config(config_file):
     parser.read(config_file)
     return parser
 
-def http_get(url):
+def http_get(url, credentials=(None, None)):
     print "Downloading %s" %url
     request = urllib2.Request(url)
-    if USERNAME and PASSWORD:
-        base64string = base64.encodestring('%s:%s' % (USERNAME, PASSWORD)).replace('\n', '')
+    if credentials[0] and credentials[1]:
+        base64string = base64.encodestring('%s:%s' % (credentials[0], credentials[1])).replace('\n', '')
         request.add_header("Authorization", "Basic %s" % base64string)
     html_page = urllib2.urlopen(request)
     return html_page
 
-def download(url, fname, outdir, cachedir):
+def download(url, fname, credentials, outdir, cachedir):
     cached_file = os.path.join(cachedir, fname)
     if os.path.exists(cached_file):
         print "File cache hit: %s" % fname
     else:
-        ret = http_get(os.path.join(url, fname))
+        ret = http_get(os.path.join(url, fname), credentials)
         cache = open(cached_file, "w")
         cache.write(ret.read())
         cache.close()
@@ -42,13 +40,13 @@ def download(url, fname, outdir, cachedir):
         if not os.path.exists(dest_file):
             shutil.copy2(cached_file, dest_file)
 
-def get_package_list(image_name, base_url, build_id, outdir, cachedir):
+def get_package_list(image_name, base_url, build_id, credentials, outdir, cachedir):
     cache_file = "%s/%s-%s.packages" %(cachedir, image_name, build_id )
     package_file = None
     if not os.path.exists(cache_file):
         image_packages = "%s/%s/images/%s/%s-%s.packages" %(base_url, build_id, image_name, image_name, build_id )
         #print image_packages
-        package_file = http_get(image_packages)
+        package_file = http_get(image_packages, credentials)
         cache = open(cache_file, "w")
         cache.write(package_file.read())
         cache.close()
@@ -90,14 +88,15 @@ if options.type == "weekly":
 else:
     release_url = "%s/%s" %(BASE, SNAPSHOTS)
 
+credentials = [None, None]
 if options.username:
-    USERNAME = options.username
+    credentials[0] = options.username
 elif config.has_option('DEFAULT', 'username'):
-    USERNAME = config.get('DEFAULT', 'username')
+    credentials[0] = config.get('DEFAULT', 'username')
 if options.password:
-    PASSWORD = options.password
+    credentials[1] = options.password
 elif config.has_option('DEFAULT', 'password'):
-    PASSWORD = config.get('DEFAULT', 'password')
+    credentials[1] = config.get('DEFAULT', 'password')
 # Initialize cache dir
 if config.has_option('DEFAULT', 'cache-dir'):
     CACHE_DIR = config.get('DEFAULT', 'cache-dir')
@@ -116,8 +115,8 @@ else:
         if os.path.exists(filepath):
             shutil.rmtree(os.path.join(filepath))
 
-p1 = get_package_list(options.image, release_url, options.old, outdir, packages_files_dir)
-p2 = get_package_list(options.image, release_url, options.new, outdir, packages_files_dir)
+p1 = get_package_list(options.image, release_url, options.old, credentials, outdir, packages_files_dir)
+p2 = get_package_list(options.image, release_url, options.new, credentials, outdir, packages_files_dir)
 
 pkgs1 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p1.iteritems()}
 pkgs2 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p2.iteritems()}
@@ -147,12 +146,12 @@ with open(os.path.join(outdir, "repourl"), "w") as repourlfile:
 for p in newpkgs:
     rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
     arch = p2[p]['arch']
-    download("%s/%s" % (new_repourl, arch), rpm, new_pkgs_dir, cached_pkgs_dir)
+    download("%s/%s" % (new_repourl, arch), rpm, credentials, new_pkgs_dir, cached_pkgs_dir)
 
 for p in changedpkgs:
     rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
     arch = p1[p]['arch']
-    download("%s/%s" % (old_repourl, arch), rpm, None, cached_pkgs_dir)
+    download("%s/%s" % (old_repourl, arch), rpm, credentials, None, cached_pkgs_dir)
     rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
-    download("%s/%s" % (new_repourl, arch), rpm, changed_pkgs_dir, cached_pkgs_dir)
+    download("%s/%s" % (new_repourl, arch), rpm, credentials, changed_pkgs_dir, cached_pkgs_dir)
 
