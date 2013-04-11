@@ -1,14 +1,65 @@
-#!/usr/bin/python
+import csv
+import urllib2
+import os
+import re, base64
+import shutil
 import yaml
 from xml.dom import minidom
 import rpm
 import glob
-from optparse import OptionParser
 import sys, os
 import zipfile
 import hashlib
-import shutil
 import fileinput
+
+
+def http_get(url, credentials=(None, None)):
+    print "Downloading %s" %url
+    request = urllib2.Request(url)
+    if credentials[0] and credentials[1]:
+        base64string = base64.encodestring('%s:%s' % (credentials[0], credentials[1])).replace('\n', '')
+        request.add_header("Authorization", "Basic %s" % base64string)
+    html_page = urllib2.urlopen(request)
+    return html_page
+
+def download(url, fname, credentials, outdir, cachedir):
+    cached_file = os.path.join(cachedir, fname)
+    if os.path.exists(cached_file):
+        print "File cache hit: %s" % fname
+    else:
+        ret = http_get(os.path.join(url, fname), credentials)
+        cache = open(cached_file, "w")
+        cache.write(ret.read())
+        cache.close()
+    if outdir:
+        dest_file = os.path.join(outdir, fname)
+        if not os.path.exists(dest_file):
+            shutil.copy2(cached_file, dest_file)
+
+def get_package_list(image_name, base_url, build_id, credentials, outdir, cachedir):
+    cache_file = "%s/%s-%s.packages" %(cachedir, image_name, build_id )
+    package_file = None
+    if not os.path.exists(cache_file):
+        image_packages = "%s/%s/images/%s/%s-%s.packages" %(base_url, build_id, image_name, image_name, build_id )
+        #print image_packages
+        package_file = http_get(image_packages, credentials)
+        cache = open(cache_file, "w")
+        cache.write(package_file.read())
+        cache.close()
+    with open(cache_file, "rb") as package_file:
+        packages = {}
+        pkgreader = csv.reader(package_file, delimiter=' ', quotechar='|')
+        for row in pkgreader:
+            pkg = row[0].split(".")
+            if len(row)>2:
+                packages[pkg[0]] = {'scm': row[2], 'version': row[1], 'arch': pkg[1]}
+            else:
+                packages[pkg[0]] = {'scm': None, 'version': row[1], 'arch': pkg[1]}
+    shutil.copy2(cache_file, os.path.join(outdir, "packages"))
+
+    return packages
+
+
 
 def get_checksum(fileName, checksum_type="sha256", excludeLine="", includeLine=""):
     """Compute sha256 hash of the specified file"""
@@ -360,12 +411,12 @@ class UpdateInfo:
         pkglist.appendChild(collection)
         root.appendChild(pkglist)
 
-def parse_patch( patch_path):
+def parse_patch(patch_path):
     print 'Processing patch file:', patch_path
     try:
-        stream = file("%s" % ( patch_path), 'r')
+        stream = file("%s" % (patch_path), 'r')
     except IOError:
-        print "Cannot read file: %s/%s" % ( patch_path)
+        print "Cannot read file: %s/%s" % (patch_path)
 
     try:
         patch = yaml.load(stream)
@@ -400,7 +451,7 @@ def create_updateinfo(root, patch):
     f.write(updateinfo_xml)
     f.close()
 
-def create_update_file(target_dir, destination, patch_id):
+def create_update_file(patch_path, target_dir, destination, patch_id):
     # create zip file
     shutil.copyfile(patch_path, "%s/%s" %(target_dir, patch_id))
     zip = zipfile.ZipFile("%s/%s.zip" % (destination, patch_id ), 'w', zipfile.ZIP_DEFLATED)
@@ -419,7 +470,7 @@ def create_update_file(target_dir, destination, patch_id):
 def update_metadata(destination, root, updates_file, patch, zip_checksum):
     # creates updates.xml
     patch_id = patch['ID']
-    up = Updates(cache=opts.updatesfile)
+    up = Updates(cache=updates_file)
     up.add_update(patch, "%s.zip" %patch_id, zip_checksum)
     # save to file
     updates_xml = up.doc.toxml()
@@ -448,57 +499,3 @@ def update_metadata(destination, root, updates_file, patch, zip_checksum):
     for line in fileinput.input("%s/data/updatemd.xml" %destination, inplace=1):
         print line.replace("repomd", "updatemd"),
 
-
-
-parser = OptionParser()
-parser.add_option('-u', '--updateinfo',  metavar='TEXT',
-              help='cached meta updateinfo file')
-parser.add_option('-U', '--updatesfile',  metavar='UPDATES',
-              help='master updates.xml file')
-parser.add_option('-O', '--original',  metavar='ORIGINAL',
-              help='Original and Old package directory')
-
-parser.add_option('-q', '--quiet', action='store_true',
-              help='do not show downloading progress')
-parser.add_option('-d', '--destdir', default='.', metavar='DIR',
-              help='Directory where to store the updates.')
-parser.add_option('-p', '--patch',  metavar='TEXT',
-              help='Patch information')
-parser.add_option('-P', '--patchdir', metavar='DIR',
-              help='directory with patch files')
-parser.add_option('-t', '--testing', action='store_true',
-              help='test updates')
-
-(opts, args) = parser.parse_args()
-
-root = os.getcwd()
-if not opts.patch:
-    print "missing options --patch. You need to point to a patch file (YAML format)"
-    sys.exit(1)
-
-if opts.patchdir:
-    root = opts.patchdir
-
-patch_path = opts.patch
-destination = ""
-if not opts.destdir:
-    destination = root
-else:
-    destination = opts.destdir
-
-# create deltas (primary, deltainfo)
-patch = parse_patch ( patch_path)
-patch_id = patch['ID']
-target_dir = "%s/%s" % (root, patch_id)
-
-os.system("createrepo --deltas --oldpackagedirs=%s %s/%s" % (opts.original, root, patch_id))
-
-# create updateinfo
-create_updateinfo(root, patch)
-
-# update repo
-os.system("modifyrepo %s/updateinfo.xml %s/%s/repodata"  % (root, root, patch_id))
-
-zip_checksum = create_update_file(target_dir, destination,  patch_id)
-
-update_metadata(destination, root, opts.updatesfile, patch, zip_checksum)
