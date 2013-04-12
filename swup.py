@@ -35,7 +35,7 @@ def get_current_version():
     config.readfp(FakeSecHead(open('/etc/os-release')))
     return dict(config.items('os-release'))
 
- 
+
 def checksum(fileName, checksum_type="sha256", excludeLine="", includeLine=""):
     """Compute sha256 hash of the specified file"""
     m = hashlib.sha256()
@@ -75,9 +75,9 @@ def probe_updates():
     href = loc.attrib['href']
     chksum = data.xpath("checksum")[0]
     chksum_type = chksum.attrib['type']
-    
+
     if os.path.exists("%s/download/metadata/updates.xml" % update_cache):
-        cur_sum = checksum("%s/download/metadata/updates.xml" % update_cache, checksum_type=chksum_type) 
+        cur_sum = checksum("%s/download/metadata/updates.xml" % update_cache, checksum_type=chksum_type)
         if cur_sum ==  chksum.text:
             print "Using file from cache, no new updates on server."
         else:
@@ -99,10 +99,10 @@ def parse_updates():
         up['id'] = attr['id']
         up['checksum'] = update.xpath("checksum")[0].text
         up['version'] = update.xpath("version")[0].text
-        up['title'] = update.xpath("title")[0].text 
+        up['title'] = update.xpath("title")[0].text
         loc = update.xpath("location")[0]
         up['location'] = "%s" % ( loc.attrib['href'])
-        
+
         updates[up['id']] = up
     return updates
 
@@ -127,7 +127,7 @@ def download_update(update_data):
             print "Error: Checksum mismatch"
             os.remove("%s/download/%s" % (update_cache,location))
     else:
-        print "%s already downloaded" % location    
+        print "%s already downloaded" % location
 
 def download_all_updates(update_label=None):
     updates = parse_updates()
@@ -139,7 +139,7 @@ def download_all_updates(update_label=None):
         for k in updates.keys():
             u = updates[k]
             download_update(u)
-        
+
 
 def get_new_update_list(location):
     up = urllib2.urlopen("%s/%s" % (update_repo, location) )
@@ -188,11 +188,11 @@ def pack(target):
 def unpack(location, update_id):
     #os.mkdir("%s/download/%s" %(update_cache, update_id))
     zfile = zipfile.ZipFile("%s/download/%s/%s" % (update_cache,update_id, location))
-    for name in zfile.namelist():            
+    for name in zfile.namelist():
         (dirname, filename) = os.path.split(name)
         print "Decompressing " + filename + " on " + dirname
         if not os.path.exists("%s/download/%s/%s" % (update_cache, update_id, dirname)):
-            os.mkdir("%s/download/%s/%s" % (update_cache, update_id, dirname))            
+            os.mkdir("%s/download/%s/%s" % (update_cache, update_id, dirname))
         if filename != "":
             fd = open("%s/download/%s/%s" % (update_cache, update_id, name),"w")
             fd.write(zfile.read(name))
@@ -231,7 +231,8 @@ def install_update(update_data):
     repourl = "file://%s/download/%s/content" % (update_cache, update_id)
     if not os.path.exists("%s/%s.repo" % (repodir, update_id)):
         os.system("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
-    print "zypper -n  --reposd-dir %s patch --with-interactive  --repo %s " % (repodir, update_id) 
+    print "zypper -n  --reposd-dir %s patch --with-interactive  --repo %s " % (repodir, update_id)
+    os.system("plymouth message --text='%s'" % u['title'])
     os.system("zypper -n  --reposd-dir %s patch --with-interactive --repo %s " % (repodir, update_id) )
     if not os.path.exists("%s/installed" % (update_cache)):
         os.mkdir("%s/installed" % (update_cache))

@@ -7,7 +7,7 @@ rm /system-update
 
 # call updater
 
-plymouth update --status="Updating..."
+plymouth update --status="Installing Updates..."
 
 for i in `ls /var/cache/updatemanager/install`; do
 	UPDATE=$(echo $i | sed -e 's/^[0-9]*-//')
