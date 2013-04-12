@@ -21,11 +21,6 @@ def read_config(config_file):
 parser = OptionParser()
 parser.add_option('-U', '--updatesfile',  metavar='UPDATES',
               help='master updates.xml file')
-parser.add_option('-O', '--original',  metavar='ORIGINAL',
-              help='Original and Old package directory')
-
-parser.add_option('-q', '--quiet', action='store_true',
-              help='do not show downloading progress')
 parser.add_option('-d', '--destdir', default='.', metavar='DIR',
               help='Directory where to store the updates.')
 parser.add_option('-p', '--patch',  metavar='TEXT',
