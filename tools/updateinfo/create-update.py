@@ -132,4 +132,7 @@ zip_checksum = create_update_file(patch_path, repo_dir, destination,  patch_id)
 
 update_metadata(destination, tmp_dir, opts.updatesfile, patch, zip_checksum)
 
+# store patch metadata in patch dir, too
+shutil.copy2(os.path.join(repo_dir, patch_id), os.path.join(target_dir, 'patch.yaml'))
+
 shutil.rmtree(tmp_dir)
