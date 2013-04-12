@@ -1,3 +1,6 @@
+* Fri Apr 12 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130412.162154@95cce66
+- do not install updateinfo script
+
 * Wed Apr 10 2013 Anas Nashif <anas.nashif@intel.com> accepted/trunk/20130310.193633@f34f977
 - Fixed version substitution
 

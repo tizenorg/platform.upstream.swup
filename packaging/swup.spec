@@ -28,7 +28,6 @@ Software Update Tool.
 %defattr(-,root,root)
 %{_bindir}/swup
 %{_bindir}/system-update
-%{_bindir}/updateinfo
 %{_unitdir}/system-update.service
 %{_unitdir}/system-update.target.wants/system-update.service
 
