@@ -462,7 +462,8 @@ def create_updateinfo(base_dir, patch):
     patch_id = patch['ID']
 
     repo_dir = os.path.join(base_dir, 'repo')
-    packages = glob.glob("repo_dir/rpms/*.rpm") + glob.glob("repo_dir/new/*.rpm")
+    packages = (glob.glob("%s/rpms/*.rpm" % repo_dir) +
+                glob.glob("%s/new/*.rpm" % repo_dir))
     for package in packages:
         u = {}
         u['binary'] = package
