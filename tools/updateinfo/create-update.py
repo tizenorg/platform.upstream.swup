@@ -1,5 +1,11 @@
 #!/usr/bin/python
 
+
+# Copyright Intel 2013 (c)
+# Authors:
+# 	Anas Nashif <anas.nashif@intel.com>
+#	Markus Lehtonen <markus.lehtonen@intel.com>
+
 import os
 import shutil
 import sys
