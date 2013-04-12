@@ -22,28 +22,24 @@ def http_get(url, credentials=(None, None)):
     html_page = urllib2.urlopen(request)
     return html_page
 
-def download(url, fname, credentials, outdir, cachedir):
+def download(url, fname, credentials, outdir, cachedir, target_fname=None):
     cached_file = os.path.join(cachedir, fname)
     if os.path.exists(cached_file):
         print "File cache hit: %s" % fname
     else:
         ret = http_get(os.path.join(url, fname), credentials)
-        cache = open(cached_file, "w")
-        cache.write(ret.read())
-        cache.close()
+        with open(cached_file, "w") as cache:
+            cache.write(ret.read())
     if outdir:
-        dest_file = os.path.join(outdir, fname)
+        if target_fname:
+            dest_file = os.path.join(outdir, target_fname)
+        else:
+            dest_file = os.path.join(outdir, fname)
         if not os.path.exists(dest_file):
             shutil.copy2(cached_file, dest_file)
 
-def get_package_list(base_url, build_id, image_name, credentials, out_dir, cache_dir):
-    cache_file = "%s/%s-%s.packages" % (cache_dir, image_name, build_id)
-    if not os.path.exists(cache_file):
-        image_packages = "%s/%s/images/%s/%s-%s.packages" %(base_url, build_id, image_name, image_name, build_id )
-        package_file = http_get(image_packages, credentials)
-        with open(cache_file, "w") as cache:
-            cache.write(package_file.read())
-    with open(cache_file, "rb") as package_file:
+def parse_package_list(filename):
+    with open(filename, "rb") as package_file:
         packages = {}
         pkgreader = csv.reader(package_file, delimiter=' ', quotechar='|')
         for row in pkgreader:
@@ -52,11 +48,48 @@ def get_package_list(base_url, build_id, image_name, credentials, out_dir, cache
                 packages[pkg[0]] = {'scm': row[2], 'version': row[1], 'arch': pkg[1]}
             else:
                 packages[pkg[0]] = {'scm': None, 'version': row[1], 'arch': pkg[1]}
-    shutil.copy2(cache_file, os.path.join(out_dir, "packages"))
-
     return packages
 
+def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credentials):
+    p1 = parse_package_list(os.path.join(baseline_dir, "packages"))
+    p2 = parse_package_list(os.path.join(target_dir, "packages"))
 
+    pkgs1 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p1.iteritems()}
+    pkgs2 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p2.iteritems()}
+    newpkgs = [pkg.split('|')[0] for pkg in pkgs2.difference(pkgs1)]
+
+    pkgs1 = {'%s|%s' % (pkg, attr['version']) for pkg, attr in p1.iteritems()}
+    pkgs2 = {'%s|%s' % (pkg, attr['version']) for pkg, attr in p2.iteritems()}
+    changedpkgs = [pkg.split('|')[0] for pkg in pkgs2.difference(pkgs1) if pkg.split('|')[0] in p1]
+
+    old_pkgs_dir = os.path.join(tmp_dir, 'old')
+    repo_dir = os.path.join(tmp_dir, 'repo')
+    new_pkgs_dir = os.path.join(repo_dir, 'new')
+    changed_pkgs_dir = os.path.join(repo_dir, 'rpms')
+    os.makedirs(old_pkgs_dir)
+    os.makedirs(new_pkgs_dir)
+    os.makedirs(changed_pkgs_dir)
+
+    with open(os.path.join(baseline_dir, "repourl"), "r") as repourlfile:
+        old_repourl = repourlfile.read().strip()
+    with open(os.path.join(target_dir, "repourl"), "r") as repourlfile:
+        new_repourl = repourlfile.read().strip()
+
+    for p in newpkgs:
+        rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
+        arch = p2[p]['arch']
+        download("%s/%s" % (new_repourl, arch), rpm, credentials, new_pkgs_dir, pkg_cache_dir)
+
+    for p in changedpkgs:
+        rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
+        arch = p1[p]['arch']
+        download("%s/%s" % (old_repourl, arch), rpm, credentials, old_pkgs_dir, pkg_cache_dir)
+        rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
+        download("%s/%s" % (new_repourl, arch), rpm, credentials, changed_pkgs_dir, pkg_cache_dir)
+
+    os.system("createrepo --deltas --oldpackagedirs=%s %s" % (old_pkgs_dir, repo_dir))
+
+    return repo_dir
 
 def get_checksum(fileName, checksum_type="sha256", excludeLine="", includeLine=""):
     """Compute sha256 hash of the specified file"""
@@ -422,13 +455,14 @@ def parse_patch(patch_path):
 
     return patch
 
-def create_updateinfo(root, patch):
+def create_updateinfo(base_dir, patch):
     ui = UpdateInfo()
     updates = []
 
     patch_id = patch['ID']
 
-    packages = glob.glob("%s/%s/rpms/*.rpm" % (root, patch_id) ) + glob.glob("%s/%s/new/*.rpm" % (root, patch_id) )
+    repo_dir = os.path.join(base_dir, 'repo')
+    packages = glob.glob("repo_dir/rpms/*.rpm") + glob.glob("repo_dir/new/*.rpm")
     for package in packages:
         u = {}
         u['binary'] = package
@@ -438,13 +472,13 @@ def create_updateinfo(root, patch):
         #print header
         os.close(fd)
         u['header'] = header
-        updates.append(u) 
+        updates.append(u)
 
-    ui.add_patch(patch, updates)           
+    ui.add_patch(patch, updates)
 
     # save to file
     updateinfo_xml = ui.doc.toxml()
-    f = open("%s/updateinfo.xml" % root, "w")
+    f = open("%s/updateinfo.xml" % base_dir, "w")
     f.write(updateinfo_xml)
     f.close()
 

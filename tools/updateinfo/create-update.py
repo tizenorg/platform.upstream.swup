@@ -3,10 +3,13 @@
 import os
 import shutil
 import sys
+import tempfile
 from optparse import OptionParser
 from ConfigParser import SafeConfigParser
 
-from updateutils import get_package_list, download, parse_patch, create_updateinfo, create_update_file, update_metadata
+from updateutils import (parse_package_list, create_delta_repo, download,
+                         parse_patch, create_updateinfo, create_update_file,
+                         update_metadata)
 
 
 def read_config(config_file):
@@ -70,6 +73,10 @@ CACHE_DIR = os.path.abspath(os.path.expanduser(CACHE_DIR))
 packages_files_dir = os.path.join(CACHE_DIR, 'packages-files')
 if not os.path.exists(packages_files_dir):
     os.makedirs(packages_files_dir)
+cached_pkgs_dir = os.path.join(CACHE_DIR, 'rpms')
+if not os.path.exists(cached_pkgs_dir):
+    os.makedirs(cached_pkgs_dir)
+
 
 root = os.getcwd()
 if not opts.patch:
@@ -101,58 +108,33 @@ else:
         if os.path.exists(filepath):
             shutil.rmtree(os.path.join(filepath))
 
-# Get packages
-p1 = get_package_list(release_url, opts.old, opts.image, credentials, target_dir, packages_files_dir)
-p2 = get_package_list(release_url, opts.new, opts.image, credentials, target_dir, packages_files_dir)
+# Create a tempdir
+tmp_dir = tempfile.mkdtemp(dir=".")
 
-pkgs1 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p1.iteritems()}
-pkgs2 = {'%s|%s' % (pkg, attr['arch']) for pkg, attr in p2.iteritems()}
-newpkgs = [pkg.split('|')[0] for pkg in pkgs2.difference(pkgs1)]
+# Get packages files
+old_baseurl = "%s/%s" % (release_url, opts.old)
+new_baseurl = "%s/%s" % (release_url, opts.new)
+download("%s/images/%s" % (old_baseurl, opts.image),
+         "%s-%s.packages" % (opts.image, opts.old), credentials, tmp_dir, packages_files_dir, "packages")
+download("%s/images/%s" % (new_baseurl, opts.image),
+         "%s-%s.packages" % (opts.image, opts.new), credentials, target_dir, packages_files_dir, "packages")
 
-pkgs1 = {'%s|%s' % (pkg, attr['version']) for pkg, attr in p1.iteritems()}
-pkgs2 = {'%s|%s' % (pkg, attr['version']) for pkg, attr in p2.iteritems()}
-changedpkgs = [pkg.split('|')[0] for pkg in pkgs2.difference(pkgs1) if pkg.split('|')[0] in p1]
-
-cached_pkgs_dir = os.path.join(CACHE_DIR, 'rpms')
-if not os.path.exists(cached_pkgs_dir):
-    os.makedirs(cached_pkgs_dir)
-
-old_pkgs_dir = os.path.join(target_dir, 'old')
-if not os.path.exists(old_pkgs_dir):
-    os.makedirs(old_pkgs_dir)
-new_pkgs_dir = os.path.join(target_dir, 'new')
-if not os.path.exists(new_pkgs_dir):
-    os.makedirs(new_pkgs_dir)
-changed_pkgs_dir = os.path.join(target_dir, 'rpms')
-if not os.path.exists(changed_pkgs_dir):
-    os.makedirs(changed_pkgs_dir)
-
-old_repourl = "%s/%s/repos/pc/x86_64/packages/" % (release_url, opts.old)
-new_repourl = "%s/%s/repos/pc/x86_64/packages/" % (release_url, opts.new)
-
+with open(os.path.join(tmp_dir, "repourl"), "w") as repourlfile:
+    repourlfile.write("%s/repos/pc/x86_64/packages/\n" % old_baseurl)
 with open(os.path.join(target_dir, "repourl"), "w") as repourlfile:
-    repourlfile.write("%s\n" % new_repourl)
+    repourlfile.write("%s/repos/pc/x86_64/packages/\n" % new_baseurl)
 
-for p in newpkgs:
-    rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
-    arch = p2[p]['arch']
-    download("%s/%s" % (new_repourl, arch), rpm, credentials, new_pkgs_dir, cached_pkgs_dir)
 
-for p in changedpkgs:
-    rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
-    arch = p1[p]['arch']
-    download("%s/%s" % (old_repourl, arch), rpm, credentials, old_pkgs_dir, cached_pkgs_dir)
-    rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
-    download("%s/%s" % (new_repourl, arch), rpm, credentials, changed_pkgs_dir, cached_pkgs_dir)
-
-os.system("createrepo --deltas --oldpackagedirs=%s %s/%s" % (cached_pkgs_dir, root, patch_id))
+repo_dir = create_delta_repo(tmp_dir, target_dir, cached_pkgs_dir, tmp_dir, credentials)
 
 # create updateinfo
-create_updateinfo(root, patch)
+create_updateinfo(tmp_dir, patch)
 
 # update repo
-os.system("modifyrepo %s/updateinfo.xml %s/%s/repodata"  % (root, root, patch_id))
+os.system("modifyrepo %s/updateinfo.xml %s/repodata"  % (tmp_dir, repo_dir))
 
-zip_checksum = create_update_file(patch_path, target_dir, destination,  patch_id)
+zip_checksum = create_update_file(patch_path, repo_dir, destination,  patch_id)
 
-update_metadata(destination, root, opts.updatesfile, patch, zip_checksum)
+update_metadata(destination, tmp_dir, opts.updatesfile, patch, zip_checksum)
+
+shutil.rmtree(tmp_dir)
