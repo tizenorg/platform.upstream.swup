@@ -30,25 +30,16 @@ parser.add_option('-P', '--patchdir', metavar='DIR',
 parser.add_option("-o", "--old",  dest="old", metavar="OLD", help="Old snapshot")
 parser.add_option("-n", "--new",  dest="new", metavar="NEW", help="New snapshot")
 parser.add_option("-t", "--type",  dest="type", metavar="TYPE", help="Release type")
-parser.add_option("-i", "--image",  dest="image", metavar="IMAGE", help="Image Name")
+parser.add_option("--product",  help="Product name", default="tzpc")
 parser.add_option("--username",  dest="username", metavar="USERNAME", help="Username for https")
 parser.add_option("--password",  dest="password", metavar="PASSWD", help="Password for https")
 
 (opts, args) = parser.parse_args()
 
-config = read_config('~/.swuprc')
+config = read_config('~/.swup.conf')
 
-DAILY="pc/releases/daily/trunk"
-WEEKLY="pc/releases/weekly/trunk"
-SNAPSHOTS="snapshots/trunk/pc/"
-BASE="https://download.tz.otcshare.org"
-
-if opts.type == "daily":
-    release_url = "%s/%s" %(BASE, DAILY)
-if opts.type == "weekly":
-    release_url = "%s/%s" %(BASE, WEEKLY)
-else:
-    release_url = "%s/%s" %(BASE, SNAPSHOTS)
+if opts.type:
+    config.set(opts.product, 'release-path', config.get(opts.product, opts.type))
 
 credentials = [None, None]
 if opts.username:
@@ -107,17 +98,15 @@ else:
 tmp_dir = tempfile.mkdtemp(dir=".")
 
 # Get packages files
-old_baseurl = "%s/%s" % (release_url, opts.old)
-new_baseurl = "%s/%s" % (release_url, opts.new)
-download("%s/images/%s" % (old_baseurl, opts.image),
-         "%s-%s.packages" % (opts.image, opts.old), credentials, tmp_dir, packages_files_dir, "packages")
-download("%s/images/%s" % (new_baseurl, opts.image),
-         "%s-%s.packages" % (opts.image, opts.new), credentials, target_dir, packages_files_dir, "packages")
+download(config.get(opts.product, 'packages-file', False, {'image-id': opts.old}),
+         credentials, tmp_dir, packages_files_dir, "packages")
+download(config.get(opts.product, 'packages-file', False, {'image-id': opts.new}),
+         credentials, target_dir, packages_files_dir, "packages")
 
 with open(os.path.join(tmp_dir, "repourl"), "w") as repourlfile:
-    repourlfile.write("%s/repos/pc/x86_64/packages/\n" % old_baseurl)
+    repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'image-id': opts.old}))
 with open(os.path.join(target_dir, "repourl"), "w") as repourlfile:
-    repourlfile.write("%s/repos/pc/x86_64/packages/\n" % new_baseurl)
+    repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'image-id': opts.new}))
 
 
 repo_dir = create_delta_repo(tmp_dir, target_dir, cached_pkgs_dir, tmp_dir, credentials)

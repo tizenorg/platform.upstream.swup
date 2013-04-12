@@ -22,12 +22,13 @@ def http_get(url, credentials=(None, None)):
     html_page = urllib2.urlopen(request)
     return html_page
 
-def download(url, fname, credentials, outdir, cachedir, target_fname=None):
+def download(url, credentials, outdir, cachedir, target_fname=None):
+    fname = os.path.basename(url)
     cached_file = os.path.join(cachedir, fname)
     if os.path.exists(cached_file):
         print "File cache hit: %s" % fname
     else:
-        ret = http_get(os.path.join(url, fname), credentials)
+        ret = http_get(url, credentials)
         with open(cached_file, "w") as cache:
             cache.write(ret.read())
     if outdir:
@@ -78,14 +79,14 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credenti
     for p in newpkgs:
         rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
         arch = p2[p]['arch']
-        download("%s/%s" % (new_repourl, arch), rpm, credentials, new_pkgs_dir, pkg_cache_dir)
+        download("%s/%s/%s" % (new_repourl, arch, rpm), credentials, new_pkgs_dir, pkg_cache_dir)
 
     for p in changedpkgs:
         rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
         arch = p1[p]['arch']
-        download("%s/%s" % (old_repourl, arch), rpm, credentials, old_pkgs_dir, pkg_cache_dir)
+        download("%s/%s/%s" % (old_repourl, arch, rpm), credentials, old_pkgs_dir, pkg_cache_dir)
         rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
-        download("%s/%s" % (new_repourl, arch), rpm, credentials, changed_pkgs_dir, pkg_cache_dir)
+        download("%s/%s/%s" % (new_repourl, arch, rpm), credentials, changed_pkgs_dir, pkg_cache_dir)
 
     os.system("createrepo --deltas --oldpackagedirs=%s %s" % (old_pkgs_dir, repo_dir))
 
