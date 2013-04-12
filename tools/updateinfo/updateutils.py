@@ -445,8 +445,8 @@ def parse_patch(patch_path):
     print 'Processing patch file:', patch_path
     try:
         stream = file("%s" % (patch_path), 'r')
-    except IOError:
-        print "Cannot read file: %s/%s" % (patch_path)
+    except IOError as err:
+        raise Exception("Cannot patch file: %s" % err)
 
     try:
         patch = yaml.load(stream)

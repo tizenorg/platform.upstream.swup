@@ -27,12 +27,13 @@ def read_config(config_file):
 parser = OptionParser()
 parser.add_option('-U', '--updatesfile',  metavar='UPDATES',
               help='master updates.xml file')
-parser.add_option('-d', '--destdir', default='.', metavar='DIR',
+parser.add_option('-d', '--destdir', default='updates', metavar='DIR',
               help='Directory where to store the updates.')
 parser.add_option('-p', '--patch',  metavar='TEXT',
               help='Patch information')
 parser.add_option('-P', '--patchdir', metavar='DIR',
-              help='directory with patch files')
+              help='directory for the (cumulative) patch files',
+              default='patches')
 parser.add_option("-o", "--old",  dest="old", metavar="OLD", help="Old snapshot")
 parser.add_option("-n", "--new",  dest="new", metavar="NEW", help="New snapshot")
 parser.add_option("-t", "--type",  dest="type", metavar="TYPE", help="Release type")
@@ -69,34 +70,22 @@ cached_pkgs_dir = os.path.join(CACHE_DIR, 'rpms')
 if not os.path.exists(cached_pkgs_dir):
     os.makedirs(cached_pkgs_dir)
 
-
-root = os.getcwd()
 if not opts.patch:
     print "missing opts --patch. You need to point to a patch file (YAML format)"
     sys.exit(1)
 
-if opts.patchdir:
-    root = opts.patchdir
-
-patch_path = opts.patch
-destination = ""
-if not opts.destdir:
-    destination = root
-else:
-    destination = opts.destdir
-
 # create deltas (primary, deltainfo)
-patch = parse_patch(patch_path)
+patch = parse_patch(opts.patch)
 patch_id = patch['ID']
-target_dir = "%s/%s" % (root, patch_id)
+patch_dir = "%s/%s" % (opts.patchdir, patch_id)
 
 # Prepare target dir
-if not os.path.exists(target_dir):
-    os.makedirs(target_dir)
+if not os.path.exists(patch_dir):
+    os.makedirs(patch_dir)
 else:
-    print "Cleaning up %s" % target_dir
+    print "Cleaning up %s" % patch_dir
     for filename in ['rpms', 'new', 'old']:
-        filepath = os.path.join(target_dir, filename)
+        filepath = os.path.join(patch_dir, filename)
         if os.path.exists(filepath):
             shutil.rmtree(os.path.join(filepath))
 
@@ -107,15 +96,15 @@ tmp_dir = tempfile.mkdtemp(dir=".")
 download(config.get(opts.product, 'packages-file', False, {'image-id': opts.old}),
          credentials, tmp_dir, packages_files_dir, "packages")
 download(config.get(opts.product, 'packages-file', False, {'image-id': opts.new}),
-         credentials, target_dir, packages_files_dir, "packages")
+         credentials, patch_dir, packages_files_dir, "packages")
 
 with open(os.path.join(tmp_dir, "repourl"), "w") as repourlfile:
     repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'image-id': opts.old}))
-with open(os.path.join(target_dir, "repourl"), "w") as repourlfile:
+with open(os.path.join(patch_dir, "repourl"), "w") as repourlfile:
     repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'image-id': opts.new}))
 
 
-repo_dir = create_delta_repo(tmp_dir, target_dir, cached_pkgs_dir, tmp_dir, credentials)
+repo_dir = create_delta_repo(tmp_dir, patch_dir, cached_pkgs_dir, tmp_dir, credentials)
 
 # create updateinfo
 create_updateinfo(tmp_dir, patch)
@@ -123,11 +112,14 @@ create_updateinfo(tmp_dir, patch)
 # update repo
 os.system("modifyrepo %s/updateinfo.xml %s/repodata"  % (tmp_dir, repo_dir))
 
-zip_checksum = create_update_file(patch_path, repo_dir, destination,  patch_id)
+if not os.path.exists(opts.destdir):
+    os.makedirs(opts.destdir)
 
-update_metadata(destination, tmp_dir, opts.updatesfile, patch, zip_checksum)
+zip_checksum = create_update_file(opts.patch, repo_dir, opts.destdir,  patch_id)
+
+update_metadata(opts.destdir, tmp_dir, opts.updatesfile, patch, zip_checksum)
 
 # store patch metadata in patch dir, too
-shutil.copy2(os.path.join(repo_dir, patch_id), os.path.join(target_dir, 'patch.yaml'))
+shutil.copy2(os.path.join(repo_dir, patch_id), os.path.join(patch_dir, 'patch.yaml'))
 
 shutil.rmtree(tmp_dir)
