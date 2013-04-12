@@ -36,8 +36,7 @@ def download(url, credentials, outdir, cachedir, target_fname=None):
             dest_file = os.path.join(outdir, target_fname)
         else:
             dest_file = os.path.join(outdir, fname)
-        if not os.path.exists(dest_file):
-            shutil.copy2(cached_file, dest_file)
+        shutil.copy2(cached_file, dest_file)
 
 def parse_package_list(filename):
     with open(filename, "rb") as package_file:
