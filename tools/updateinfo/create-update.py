@@ -25,8 +25,6 @@ def read_config(config_file):
     return parser
 
 parser = OptionParser()
-parser.add_option('-U', '--updatesfile',  metavar='UPDATES',
-              help='master updates.xml file')
 parser.add_option('-d', '--destdir', default='updates', metavar='DIR',
               help='Directory where to store the updates.')
 parser.add_option('-p', '--patch',  metavar='TEXT',
@@ -117,7 +115,7 @@ if not os.path.exists(opts.destdir):
 
 zip_checksum = create_update_file(opts.patch, repo_dir, opts.destdir,  patch_id)
 
-update_metadata(opts.destdir, tmp_dir, opts.updatesfile, patch, zip_checksum)
+update_metadata(opts.destdir, tmp_dir, patch, zip_checksum)
 
 # store patch metadata in patch dir, too
 shutil.copy2(os.path.join(repo_dir, patch_id), os.path.join(patch_dir, 'patch.yaml'))

@@ -8,6 +8,7 @@ from xml.dom import minidom
 import rpm
 import glob
 import sys, os
+import gzip
 import zipfile
 import hashlib
 import fileinput
@@ -254,23 +255,29 @@ class Updates:
                 self.doc = cache.doc
             except AttributeError:
                 if os.path.exists(cache):
+                    if cache.endswith('.gz'):
+                        cache = gzip.open(cache)
                     self.doc = minidom.parse(cache)
             self._sanity_check()
-            self.next =  len(self.doc.getElementsByTagName('update'))
         else:
             self._new_doc()
-            self.next = 0
-    def _insert(self, parent, name, attrs={}, text=None, data=None):
-        """ Helper function to trivialize inserting an element into the doc """
-        child = self.doc.createElement(name)
+
+    def _create_element(self, name, attrs={}, text=None, data=None):
+        """ Helper function to trivialize creating a new element"""
+        element = self.doc.createElement(name)
         for item in attrs.items():
-            child.setAttribute(item[0], unicode(item[1]))
+            element.setAttribute(item[0], unicode(item[1]))
         if text:
             txtnode = self.doc.createTextNode(unicode(text))
-            child.appendChild(txtnode)
+            element.appendChild(txtnode)
         if data:
             txtnode = self.doc.createCDATASection(unicode(data))
-            child.appendChild(txtnode)
+            element.appendChild(txtnode)
+        return element
+
+    def _insert(self, parent, name, attrs={}, text=None, data=None):
+        """ Helper function to trivialize inserting an element into the doc"""
+        child = self._create_element(name, attrs, text, data)
         parent.appendChild(child)
         return child
 
@@ -283,10 +290,15 @@ class Updates:
         """
         import time
 
-        self.next = self.next + 1
-        root = self._insert(self.doc.firstChild, 'update', attrs={
-                'id'      : update['ID']
-        })
+        root = self._create_element('update', attrs={'id': update['ID']})
+
+        replaced = 0
+        for node in self.doc.getElementsByTagName('update'):
+            if node.getAttribute('id') == update['ID']:
+                self.doc.firstChild.replaceChild(root, node)
+                replaced += 1
+        if not replaced:
+            self.doc.firstChild.appendChild(root)
 
         self._insert(root, 'title', text=update['Title'])
         self._insert(root, 'type', text=update['Type'])
@@ -499,10 +511,21 @@ def create_update_file(patch_path, target_dir, destination, patch_id):
     zip_checksum = get_checksum("%s/%s.zip" % (destination, patch_id))
     return zip_checksum
 
-def update_metadata(destination, root, updates_file, patch, zip_checksum):
+def update_metadata(destination, root, patch, zip_checksum):
     # creates updates.xml
     patch_id = patch['ID']
+
+    data_dir = os.path.join(destination, "data")
+    updatemd_file = os.path.join(data_dir, "updatemd.xml")
+
+    # Update the old updates file, in case there are multiple, just update
+    # one and delete others
+    old_updates = glob.glob("%s/*-updates.xml*" % data_dir)
+    updates_file = old_updates[0] if old_updates else None
     up = Updates(cache=updates_file)
+    for fname in old_updates:
+        os.unlink(fname)
+
     up.add_update(patch, "%s.zip" %patch_id, zip_checksum)
     # save to file
     updates_xml = up.doc.toxml()
@@ -510,7 +533,7 @@ def update_metadata(destination, root, updates_file, patch, zip_checksum):
     f.write(updates_xml)
     f.close()
 
-    if not os.path.exists("%s/data/updatemd.xml" %destination):
+    if not os.path.exists(updatemd_file):
         os.mkdir("%s/data" %destination)
         updatemd = open("%s/data/repomd.xml" %destination, "w")
         template = """<?xml version="1.0" encoding="UTF-8"?>
@@ -520,14 +543,14 @@ def update_metadata(destination, root, updates_file, patch, zip_checksum):
         updatemd.write(template)
         updatemd.close()
     else:
-        for line in fileinput.input("%s/data/updatemd.xml" %destination, inplace=1):
+        for line in fileinput.input(updatemd_file, inplace=1):
             print line.replace("updatemd", "repomd"),
-        shutil.copyfile("%s/data/updatemd.xml" %destination, "%s/data/repomd.xml" %destination)
+        shutil.copyfile(updatemd_file, "%s/data/repomd.xml" %destination)
 
-    os.system("modifyrepo --mdtype=updates %s/updates.xml %s/data" % (root, destination))
-    shutil.move("%s/data/repomd.xml" %destination, "%s/data/updatemd.xml" %destination)
-    for line in fileinput.input("%s/data/updatemd.xml" %destination, inplace=1):
+    os.system("modifyrepo --mdtype=updates %s/updates.xml %s" % (root, data_dir))
+    shutil.move("%s/data/repomd.xml" %destination, updatemd_file)
+    for line in fileinput.input(updatemd_file, inplace=1):
         print line.replace("repodata", "data"),
-    for line in fileinput.input("%s/data/updatemd.xml" %destination, inplace=1):
+    for line in fileinput.input(updatemd_file, inplace=1):
         print line.replace("repomd", "updatemd"),
 
