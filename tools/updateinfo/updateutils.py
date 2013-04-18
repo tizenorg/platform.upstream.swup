@@ -90,6 +90,15 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credenti
 
     os.system("createrepo --deltas --oldpackagedirs=%s %s" % (old_pkgs_dir, repo_dir))
 
+    # Clean up the rpms dir: remove all packages for which delta was generated
+    for p in changedpkgs:
+        drpm = "%s-%s_%s.%s.drpm" % (p, p1[p]['version'], p2[p]['version'], p1[p]['arch'])
+        rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
+        if os.path.exists(os.path.join(repo_dir, 'drpms', drpm)):
+            os.unlink(os.path.join(repo_dir, 'rpms', rpm))
+        else:
+            print "Preserving %s, no deltarpm (%s) was found" % (rpm, drpm)
+
     return repo_dir
 
 def get_checksum(fileName, checksum_type="sha256", excludeLine="", includeLine=""):
@@ -502,8 +511,6 @@ def create_update_file(patch_path, target_dir, destination, patch_id):
     rootlen = len(target_dir) + 1
     for base, dirs, files in os.walk(target_dir):
         basedir = os.path.basename(base)
-        if basedir == "rpms":
-            continue
         for file in files:
             fn = os.path.join(base, file)
             zip.write(fn, "%s/%s" % (patch_id, fn[rootlen:]))
