@@ -90,12 +90,14 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credenti
 
     os.system("createrepo --deltas --oldpackagedirs=%s %s" % (old_pkgs_dir, repo_dir))
 
-    # Clean up the rpms dir: remove all packages for which delta was generated
+    # Clean up the rpms dir: move all packages for which delta was generated
+    nozip_pkgs_dir = os.path.join(repo_dir, 'nozip')
+    os.makedirs(nozip_pkgs_dir)
     for p in changedpkgs:
         drpm = "%s-%s_%s.%s.drpm" % (p, p1[p]['version'], p2[p]['version'], p1[p]['arch'])
         rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
         if os.path.exists(os.path.join(repo_dir, 'drpms', drpm)):
-            os.unlink(os.path.join(repo_dir, 'rpms', rpm))
+            shutil.move(os.path.join(repo_dir, 'rpms', rpm), nozip_pkgs_dir)
         else:
             print "Preserving %s, no deltarpm (%s) was found" % (rpm, drpm)
 
@@ -484,6 +486,7 @@ def create_updateinfo(base_dir, patch):
 
     repo_dir = os.path.join(base_dir, 'repo')
     packages = (glob.glob("%s/rpms/*.rpm" % repo_dir) +
+                glob.glob("%s/nozip/*.rpm" % repo_dir) +
                 glob.glob("%s/new/*.rpm" % repo_dir))
     for package in packages:
         u = {}
@@ -511,6 +514,8 @@ def create_update_file(patch_path, target_dir, destination, patch_id):
     rootlen = len(target_dir) + 1
     for base, dirs, files in os.walk(target_dir):
         basedir = os.path.basename(base)
+        if basedir == "nozip":
+            continue
         for file in files:
             fn = os.path.join(base, file)
             zip.write(fn, "%s/%s" % (patch_id, fn[rootlen:]))
