@@ -1,7 +1,7 @@
 
 Note: This is still under heavy development.
 
-updateinfo.py
+create-update.py
 ---------------
 
 This script creates the update file and the related metadata based
@@ -17,7 +17,7 @@ Bugs:
     - 23504
     - 23652
 Description: |
-    * Bug Fix:  Desktop sharing requires Vino in the default package set 
+    * Bug Fix:  Desktop sharing requires Vino in the default package set
     * Fix the capplet categories to it shows in the personal settings panel
 Type: recommended
 Status: stable
@@ -25,21 +25,14 @@ ID: TZPC-UP-0002-01
 
 ----
 
-The input file has all the information related to the update which will be 
-transferred to the update repository and then to the UI. The text format is 
+The input file has all the information related to the update which will be
+transferred to the update repository and then to the UI. The text format is
 simple markup language that will be converted to basic HTML.
 
-To run this script you will need an update input file (the yaml file) and 
-a directory named after the patch ID with the packages that need to be updated 
-and using the following structure:
+To run this script you will need an update input file (the yaml file).
 
- TZPC-UP-0002-01/
-    rpms  # packages that exist on the target but need updating
-    new  # packages that are new and were not installed on the target system.
-
-In addition, you will need a directory with the old packages that currently are 
-installed on the system and that require tan update. This is needed to enable
-delta package creation.
+In addition, you will need to know the tizen build-id currently installed
+and the build-id of the image to update to.
 
 So, with those prequisites you should be able to call the the command:
 
@@ -61,9 +54,8 @@ Options:
   -t, --testing         test updates
 
 
-python updateinfo.py --patch <path to patch>/TZPC-UP-0002-01.yaml \
-    --original <path to old packages>/old_packages/  --destdir <destination>
+python create-update.py -o tizen-pc_20130418.9 -n tizen-pc_20130419.2 \
+       -d <destination> -P <path to patchdir> -p \
+       <path to patch>/TZPC-UP-0002-01.yaml
 
-
-<destination> which is set using --destdir has the update directory with the
-packages inside. (TZPC-UP-0002-01/rpms and TZPC-UP-0002-01/new)
+<destination> which is set using -d will have the update inside.
