@@ -97,9 +97,9 @@ download(config.get(opts.product, 'packages-file', False, {'image-id': opts.new}
          credentials, patch_dir, packages_files_dir, "packages")
 
 with open(os.path.join(tmp_dir, "repourl"), "w") as repourlfile:
-    repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'image-id': opts.old}))
+    repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'build-id': opts.old}))
 with open(os.path.join(patch_dir, "repourl"), "w") as repourlfile:
-    repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'image-id': opts.new}))
+    repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'build-id': opts.new}))
 
 
 repo_dir = create_delta_repo(tmp_dir, patch_dir, cached_pkgs_dir, tmp_dir, credentials)
