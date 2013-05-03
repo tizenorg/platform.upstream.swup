@@ -2,8 +2,8 @@
 Description=Tizen System Updater
 DefaultDependencies=no
 OnFailure=reboot.target
-Requires=systemd-remount-fs.service plymouth-update.service
-After=systemd-remount-fs.service plymouth-update.service
+Requires=systemd-remount-fs.service plymouth-update.service dbus.service
+After=systemd-remount-fs.service plymouth-update.service dbus.service
 
 [Service]
 Type=oneshot
