@@ -113,9 +113,10 @@ os.system("modifyrepo %s/updateinfo.xml %s/repodata"  % (tmp_dir, repo_dir))
 if not os.path.exists(opts.destdir):
     os.makedirs(opts.destdir)
 
-zip_sz, zip_checksum = create_update_file(opts.patch, repo_dir, opts.destdir,
-                                          patch_id)
+zip_sz, zip_open_sz, zip_checksum = create_update_file(opts.patch, repo_dir,
+                                                       opts.destdir, patch_id)
 extra_meta = {'size': zip_sz,
+              'open-size': zip_open_sz,
               'checksum': zip_checksum,
               'build-id': opts.new}
 

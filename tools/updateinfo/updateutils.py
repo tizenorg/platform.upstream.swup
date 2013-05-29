@@ -521,10 +521,14 @@ def create_update_file(patch_path, target_dir, destination, patch_id):
         for file in files:
             fn = os.path.join(base, file)
             zip.write(fn, "%s/%s" % (patch_id, fn[rootlen:]))
+    # Calculate total size of (deflated) files
+    zip_open_sz = 0
+    for info in zip.infolist():
+        zip_open_sz += info.file_size
     zip.close()
     zip_sz = os.stat(zip_path).st_size
     zip_checksum = get_checksum("%s/%s.zip" % (destination, patch_id))
-    return (zip_sz, zip_checksum)
+    return (zip_sz, zip_open_sz, zip_checksum)
 
 def update_metadata(destination, root, patch, extra_metadata):
     # creates updates.xml
