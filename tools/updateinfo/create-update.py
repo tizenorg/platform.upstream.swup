@@ -113,9 +113,11 @@ os.system("modifyrepo %s/updateinfo.xml %s/repodata"  % (tmp_dir, repo_dir))
 if not os.path.exists(opts.destdir):
     os.makedirs(opts.destdir)
 
-zip_checksum = create_update_file(opts.patch, repo_dir, opts.destdir,  patch_id)
+zip_checksum = create_update_file(opts.patch, repo_dir, opts.destdir, patch_id)
+extra_meta = {'checksum': zip_checksum,
+              'build-id': opts.new}
 
-update_metadata(opts.destdir, tmp_dir, patch, zip_checksum)
+update_metadata(opts.destdir, tmp_dir, patch, extra_meta)
 
 # store patch metadata in patch dir, too
 shutil.copy2(os.path.join(repo_dir, patch_id), os.path.join(patch_dir, 'patch.yaml'))

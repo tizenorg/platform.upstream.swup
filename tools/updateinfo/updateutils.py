@@ -295,7 +295,7 @@ class Updates:
     def _get_notice(self, update_id):
         return update_id in self.pids
 
-    def add_update(self, update,  location, checksum):
+    def add_update(self, update,  location, extra_meta):
         """
         Generate the extended metadata for a given update
         """
@@ -314,8 +314,9 @@ class Updates:
         self._insert(root, 'title', text=update['Title'])
         self._insert(root, 'type', text=update['Type'])
         self._insert(root, 'location', attrs={'href': location})
-        self._insert(root, 'checksum', text=checksum)
         self._insert(root, 'version', text=update['Release'])
+        for key, val in extra_meta.iteritems():
+            self._insert(root, key, text=val)
         times = str(time.time()).split(".")
         issued_time = times[0]
         self._insert(root, 'issued', attrs={ 'date' : issued_time })
@@ -523,7 +524,7 @@ def create_update_file(patch_path, target_dir, destination, patch_id):
     zip_checksum = get_checksum("%s/%s.zip" % (destination, patch_id))
     return zip_checksum
 
-def update_metadata(destination, root, patch, zip_checksum):
+def update_metadata(destination, root, patch, extra_metadata):
     # creates updates.xml
     patch_id = patch['ID']
 
@@ -538,7 +539,7 @@ def update_metadata(destination, root, patch, zip_checksum):
     for fname in old_updates:
         os.unlink(fname)
 
-    up.add_update(patch, "%s.zip" %patch_id, zip_checksum)
+    up.add_update(patch, "%s.zip" %patch_id, extra_metadata)
     # save to file
     updates_xml = up.doc.toxml()
     f = open("%s/updates.xml" % root, "w")
