@@ -511,7 +511,8 @@ def create_updateinfo(base_dir, patch):
 def create_update_file(patch_path, target_dir, destination, patch_id):
     # create zip file
     shutil.copyfile(patch_path, "%s/%s" %(target_dir, patch_id))
-    zip = zipfile.ZipFile("%s/%s.zip" % (destination, patch_id ), 'w', zipfile.ZIP_DEFLATED)
+    zip_path = '%s/%s.zip' % (destination, patch_id)
+    zip = zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED)
     rootlen = len(target_dir) + 1
     for base, dirs, files in os.walk(target_dir):
         basedir = os.path.basename(base)
@@ -521,8 +522,9 @@ def create_update_file(patch_path, target_dir, destination, patch_id):
             fn = os.path.join(base, file)
             zip.write(fn, "%s/%s" % (patch_id, fn[rootlen:]))
     zip.close()
+    zip_sz = os.stat(zip_path).st_size
     zip_checksum = get_checksum("%s/%s.zip" % (destination, patch_id))
-    return zip_checksum
+    return (zip_sz, zip_checksum)
 
 def update_metadata(destination, root, patch, extra_metadata):
     # creates updates.xml
