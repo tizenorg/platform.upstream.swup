@@ -91,9 +91,9 @@ else:
 tmp_dir = tempfile.mkdtemp(dir=".")
 
 # Get packages files
-download(config.get(opts.product, 'packages-file', False, {'image-id': opts.old}),
+download(config.get(opts.product, 'packages-file', False, {'build-id': opts.old}),
          credentials, tmp_dir, packages_files_dir, "packages")
-download(config.get(opts.product, 'packages-file', False, {'image-id': opts.new}),
+download(config.get(opts.product, 'packages-file', False, {'build-id': opts.new}),
          credentials, patch_dir, packages_files_dir, "packages")
 
 with open(os.path.join(tmp_dir, "repourl"), "w") as repourlfile:
