@@ -1,0 +1,4 @@
+[Unit]
+Description=System Restore
+Conflicts=shutdown.target systemd-readahead-collect.service systemd-readahead-replay.service
+AllowIsolate=yes
