@@ -1,3 +1,9 @@
+* Tue Jun 25 2013 William Douglas <william.douglas@intel.com> accepted/tizen/20130611.123253@cb5aee8
+- Add restore features to the updater.
+- tools: add deflated size of the zipfile to the updates.xml
+- tools: add zip file size to the updates.xml metadata
+- tools: add build-id to the updates.xml metadata
+
 * Fri Apr 12 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130412.162154@95cce66
 - do not install updateinfo script
 
