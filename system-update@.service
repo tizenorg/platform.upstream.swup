@@ -1,5 +1,5 @@
 [Unit]
-Description=Tizen System Updater
+Description=Tizen System Updater for %i
 DefaultDependencies=no
 OnFailure=reboot.target
 Requires=systemd-remount-fs.service plymouth-update.service dbus.service
@@ -10,4 +10,4 @@ Type=oneshot
 #StandardInput=tty-force
 StandardOutput=tty-force
 RemainAfterExit=no
-ExecStart=/usr/bin/system-update
+ExecStart=/usr/bin/system-update %i

@@ -54,11 +54,11 @@ function factory_restore
 	snapper undochange 1..0
 }
 
-if [ -f /var/lib/snapshot-restore ]; then
+if [[ "$1" = "system" && -f /var/lib/snapshot-restore ]]; then
 	system_restore
-elif [ -f /var/lib/factory-restore ]; then
+elif [[ "$1" = "factory" && -f /var/lib/factory-restore ]]; then
 	factory_restore
-elif [ -e /system-update ]; then
+elif [[ "$1" = "update" ]]; then
 	system_update
 fi
 
