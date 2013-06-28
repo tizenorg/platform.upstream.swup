@@ -35,7 +35,6 @@ def get_current_version():
     config.readfp(FakeSecHead(open('/etc/os-release')))
     return dict(config.items('os-release'))
 
-
 def checksum(fileName, checksum_type="sha256", excludeLine="", includeLine=""):
     """Compute sha256 hash of the specified file"""
     m = hashlib.sha256()
@@ -99,6 +98,7 @@ def parse_updates():
         up['id'] = attr['id']
         up['checksum'] = update.xpath("checksum")[0].text
         up['version'] = update.xpath("version")[0].text
+        up['build-id'] = update.xpath("build-id")[0].text
         up['title'] = update.xpath("title")[0].text
         loc = update.xpath("location")[0]
         up['location'] = "%s" % ( loc.attrib['href'])
@@ -240,9 +240,10 @@ def install_update(update_data):
 
     os_release = get_current_version()
     current_version = os_release['version_id'].strip('"')
+    current_build = os_release['build_id'].strip('"')
     print "Finished installing %s. (from %s to %s)" % (update_id, current_version, u['version'])
     for line in fileinput.input("/etc/os-release", inplace=1):
-        print line.replace(current_version, u['version']),
+        print line.replace(current_version, u['version']).replace(current_build, u['build-id']),
     for line in fileinput.input("/etc/tizen-release", inplace=1):
         print line.replace(current_version, u['version']),
 
