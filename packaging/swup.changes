@@ -1,3 +1,7 @@
+* Fri Jun 28 2013 William Douglas <william.douglas@intel.com> submit/tizen/20130625.164927@79d689c
+- Update BUILD_ID in addition to VERSION_ID
+- Change how system-update is executed
+
 * Tue Jun 25 2013 William Douglas <william.douglas@intel.com> accepted/tizen/20130611.123253@cb5aee8
 - Add restore features to the updater.
 - tools: add deflated size of the zipfile to the updates.xml
