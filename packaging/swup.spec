@@ -6,6 +6,7 @@ Summary:        Software Update Tool
 Url:            http://www.tizen.org
 Group:          System/Management
 Source:         %{name}-%{version}.tar.bz2
+Source1001: 	swup.manifest
 BuildRequires:  systemd
 Requires:       deltarpm
 Requires:       python-lxml
@@ -18,6 +19,7 @@ Software Update Tool.
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 
 %build
 
@@ -32,6 +34,7 @@ ln -sf ../system-update@.service %{buildroot}/%{_unitdir}/system-restore.target.
 ln -sf ../system-update@.service %{buildroot}/%{_unitdir}/factory-reset.target.wants/system-update@factory.service
 
 %files
+%manifest %{name}.manifest
 %defattr(-,root,root)
 %{_bindir}/swup
 %{_bindir}/system-update
