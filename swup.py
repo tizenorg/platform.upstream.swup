@@ -259,75 +259,84 @@ def list_updates():
             print "%s" %u['id']
             print "    %s" %u['title']
 
+def get_options():
+    parser = OptionParser()
+    parser.add_option("-V", "--os-version", action="store_true", dest="osver", default=False,
+                      help="Current OS Version")
 
-parser = OptionParser()
-parser.add_option("-V", "--os-version", action="store_true", dest="osver", default=False,
-                  help="Current OS Version")
+    parser.add_option("-l", "--list-updates", action="store_true", dest="listupdates", default=False,
+                      help="List updates")
 
-parser.add_option("-l", "--list-updates", action="store_true", dest="listupdates", default=False,
-                  help="List updates")
+    parser.add_option("-d", "--download-only", action="store_true", dest="downloadonly", default=False,
+                      help="Download only")
 
-parser.add_option("-d", "--download-only", action="store_true", dest="downloadonly", default=False,
-                  help="Download only")
+    parser.add_option("-i", "--install",  dest="install", metavar="LABEL",
+                      help="Install update")
 
-parser.add_option("-i", "--install",  dest="install", metavar="LABEL",
-                  help="Install update")
+    parser.add_option("-p", "--prepare",  dest="prepare", metavar="LABEL",
+                      help="Prepare update")
 
-parser.add_option("-p", "--prepare",  dest="prepare", metavar="LABEL",
-                  help="Prepare update")
+    parser.add_option("-a", "--install-all",  dest="installall", action="store_true", default=False,
+                      help="Install all updates")
 
-parser.add_option("-a", "--install-all",  dest="installall", action="store_true", default=False,
-                  help="Install all updates")
+    parser.add_option("-P", "--prepare-all",  dest="prepareall", action="store_true", default=False,
+                      help="prepare update")
 
-parser.add_option("-P", "--prepare-all",  dest="prepareall", action="store_true", default=False,
-                  help="prepare update")
+    parser.add_option("-r", "--recommended",  dest="recommended", action="store_true", default=False,
+                      help="Install recommended updates only")
 
-parser.add_option("-r", "--recommended",  dest="recommended", action="store_true", default=False,
-                  help="Install recommended updates only")
+    parser.add_option("-q", "--quiet",
+                      action="store_false", dest="verbose", default=True,
+                      help="don't print status messages to stdout")
 
-parser.add_option("-q", "--quiet",
-                  action="store_false", dest="verbose", default=True,
-                  help="don't print status messages to stdout")
+    (options, args) = parser.parse_args()
 
-(options, args) = parser.parse_args()
+    return options
 
-if not os.path.exists(update_cache):
-    os.mkdir("%s" % update_cache)
-if not os.path.exists("%s/download" % update_cache):
-    os.mkdir("%s/download" % update_cache)
-    os.mkdir("%s/download/metadata" % update_cache)
+def run_action(options):
+    if not os.path.exists(update_cache):
+        os.mkdir("%s" % update_cache)
+    if not os.path.exists("%s/download" % update_cache):
+        os.mkdir("%s/download" % update_cache)
+        os.mkdir("%s/download/metadata" % update_cache)
 
-if not os.path.exists("%s/repos.d" % update_cache):
-    os.mkdir("%s/repos.d" % update_cache)
+    if not os.path.exists("%s/repos.d" % update_cache):
+        os.mkdir("%s/repos.d" % update_cache)
 
-if options.osver:
-    os_release = get_current_version()
-    print os_release['version_id'].strip('"')
+    if options.osver:
+        os_release = get_current_version()
+        print os_release['version_id'].strip('"')
 
-if options.listupdates:
-    probe_updates()
-    list_updates()
+    if options.listupdates:
+        probe_updates()
+        list_updates()
 
-if options.downloadonly:
-    probe_updates()
-    download_all_updates()
+    if options.downloadonly:
+        probe_updates()
+        download_all_updates()
 
-if options.prepare is not None:
-    probe_updates()
-    updates = parse_updates()
-    if not updates.has_key(options.prepare):
-        print "%s is not available for installation. Abort." %options.prepare
-        sys.exit()
-    u = updates[options.prepare]
-    download_update(u)
-    prepare_update(u, False)
+    if options.prepare is not None and not options.prepare_all:
+        probe_updates()
+        updates = parse_updates()
+        if not updates.has_key(options.prepare):
+            print "%s is not available for installation. Abort." %options.prepare
+            sys.exit(0)
+        u = updates[options.prepare]
+        download_update(u)
+        prepare_update(u, False)
 
-if options.install is not None:
-    #probe_updates()
-    updates = parse_updates()
-    if not updates.has_key(options.install):
-        print "%s is not available for installation. Abort." %options.install
-        sys.exit()
-    u = updates[options.install]
-    download_update(u)
-    install_update(u)
+    if options.install is not None and not options.install_all:
+        updates = parse_updates()
+        if not updates.has_key(options.install):
+            print "%s is not available for installation. Abort." %options.install
+            sys.exit(0)
+        u = updates[options.install]
+        download_update(u)
+        install_update(u)
+
+if __name__ == '__main__':
+    try:
+        options = get_options()
+        run_action(options)
+    except:
+        sys.exit(-1)
