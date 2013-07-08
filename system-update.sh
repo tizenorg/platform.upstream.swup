@@ -8,19 +8,11 @@ function system_update
 
 	plymouth update --status="Installing Updates..."
 
-	for i in `ls /var/cache/updatemanager/install`; do
-		UPDATE=$(echo $i | sed -e 's/^[0-9]*-//')
-		mkdir -p /var/cache/zypp/packages/$UPDATE/rpms
-		/usr/bin/swup -i  $UPDATE
-		if [ "$?" != 0 ]; then
-		    echo "Update failed"
-		    exit -1
-		fi
-		rm /var/cache/updatemanager/install/$i
-	done
-
-	# check update status
-	# update failed revert to snapshot
+	/usr/bin/swup -a
+	if [ "$?" != 0 ]; then
+	    echo "Update failed"
+	    exit -1
+	fi
 }
 
 function system_restore

@@ -248,6 +248,9 @@ def install_update(update_data):
     if not os.path.exists("%s/installed" % (update_cache)):
         os.mkdir("%s/installed" % (update_cache))
     shutil.copyfile("%s/download/%s/content/%s" %(update_cache, update_id, update_id), "%s/installed/%s" % (update_cache, update_id))
+    for id in os.listdir("%s/install" % update_cache):
+        if re.search(update_id, id):
+            os.remove("%s/install/%s" % (update_cache, id))
 
     os_release = get_current_version()
     current_version = os_release['version_id'].strip('"')
