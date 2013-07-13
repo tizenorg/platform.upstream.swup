@@ -276,10 +276,10 @@ def get_options():
     parser.add_option("-p", "--prepare",  dest="prepare", metavar="LABEL",
                       help="Prepare update")
 
-    parser.add_option("-a", "--install-all",  dest="installall", action="store_true", default=False,
+    parser.add_option("-a", "--install-all",  dest="install_all", action="store_true", default=False,
                       help="Install all updates")
 
-    parser.add_option("-P", "--prepare-all",  dest="prepareall", action="store_true", default=False,
+    parser.add_option("-P", "--prepare-all",  dest="prepare_all", action="store_true", default=False,
                       help="prepare update")
 
     parser.add_option("-r", "--recommended",  dest="recommended", action="store_true", default=False,
