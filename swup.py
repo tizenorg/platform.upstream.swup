@@ -218,11 +218,11 @@ def prepare_update(update_data, download):
     repodir = "%s/repos.d" %update_cache
     repourl = "file://%s/download/%s/content" % (update_cache, update_id)
     if not os.path.exists("%s/%s.repo" % (repourl, update_id)):
-        r = os.system("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
+        r = sub.Popen("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id)).wait()
         if r != 0:
             raise Exception("zypper add repo error: %s" % r)
     if not download:
-        r = os.system("zypper --quiet --non-interactive --reposd-dir %s patch --repo %s -d" % (repodir, update_id) )
+        r = sub.Popen("zypper --quiet --non-interactive --reposd-dir %s patch --repo %s -d" % (repodir, update_id) ).wait()
         if r not in patch_okay_codes:
             raise Exception("zypper patch error: %s" % r)
 
@@ -237,12 +237,12 @@ def install_update(update_data):
     repodir = "%s/repos.d" %update_cache
     repourl = "file://%s/download/%s/content" % (update_cache, update_id)
     if not os.path.exists("%s/%s.repo" % (repodir, update_id)):
-        r = os.system("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
+        r = sub.Popen("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id)).wait()
         if r != 0:
             raise Exception("zypper add repo error: %s" % r)
     print "zypper -n  --reposd-dir %s patch --with-interactive  --repo %s " % (repodir, update_id)
-    os.system("plymouth message --text='%s'" % u['title'])
-    r = os.system("zypper -n  --reposd-dir %s patch --with-interactive --repo %s " % (repodir, update_id) )
+    sub.Popen("plymouth message --text='%s'" % u['title']).wait()
+    r = sub.Popen("zypper -n  --reposd-dir %s patch --with-interactive --repo %s " % (repodir, update_id) ).wait()
     if r not in patch_okay_codes:
         raise Exception("zypper patch error: %s" % r)
     if not os.path.exists("%s/installed" % (update_cache)):
