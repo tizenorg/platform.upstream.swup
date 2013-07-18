@@ -9,6 +9,7 @@ import hashlib
 import os
 import tempfile
 import shutil
+import copy
 import sys
 import zipfile
 import rpm
@@ -269,6 +270,19 @@ def list_updates():
             print "%s" %u['id']
             print "    %s" %u['title']
 
+def get_uninstalled_updates(updates):
+    uninstalled = copy.deepcopy(updates)
+    if os.path.isdir("%s/installed/" % update_cache):
+        update_ids = sorted(uninstalled.keys(), reverse=True)
+        installed = sorted(os.listdir("%s/installed/" % update_cache), reverse=True)
+        if len(installed) != 0:
+            latest = installed[0]
+            if update_ids.count(latest) != 0:
+                for i in update_ids[update_ids.index(latest):]:
+                    uninstalled.pop(i)
+
+    return uninstalled
+
 def get_options():
     parser = OptionParser()
     parser.add_option("-V", "--os-version", action="store_true", dest="osver", default=False,
@@ -343,6 +357,13 @@ def run_action(options):
         u = updates[options.install]
         download_update(u)
         install_update(u)
+
+    if options.install_all:
+        updates = parse_updates()
+        uninstalled_updates = get_uninstalled_updates(updates)
+        for u in uninstalled_updates.values():
+            download_update(u)
+            install_update(u)
 
 if __name__ == '__main__':
     try:
