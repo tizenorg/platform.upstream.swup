@@ -12,6 +12,10 @@ function system_update
 		UPDATE=$(echo $i | sed -e 's/^[0-9]*-//')
 		mkdir -p /var/cache/zypp/packages/$UPDATE/rpms
 		/usr/bin/swup -i  $UPDATE
+		if [ "$?" != 0 ]; then
+		    echo "Update failed"
+		    exit -1
+		fi
 		rm /var/cache/updatemanager/install/$i
 	done
 
