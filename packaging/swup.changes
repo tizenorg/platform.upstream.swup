@@ -1,3 +1,13 @@
+* Tue Jul 23 2013 William Douglas <william.douglas@intel.com> accepted/tizen/20130710.214628@09257d6
+- Replace os.system() calls
+- Remove bash scripting work around for update all
+- Add error handling for swup failures
+- Have swup logging go to the journal
+- Add handling for the install all updates option
+- Add exceptions and error checking
+- Fix commandline options
+- Clean up and pythonize swup
+
 * Fri Jun 28 2013 William Douglas <william.douglas@intel.com> submit/tizen/20130625.164927@79d689c
 - Update BUILD_ID in addition to VERSION_ID
 - Change how system-update is executed
