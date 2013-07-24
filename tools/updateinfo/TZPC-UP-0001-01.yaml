@@ -9,3 +9,5 @@ Description: |
 Type: recommended
 Status: stable
 ID: TZPC-UP-0001-01
+BlacklistPkgs:
+    - broken-pkg

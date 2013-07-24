@@ -51,7 +51,7 @@ def parse_package_list(filename):
                 packages[pkg[0]] = {'scm': None, 'version': row[1], 'arch': pkg[1]}
     return packages
 
-def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credentials):
+def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credentials, blacklist):
     p1 = parse_package_list(os.path.join(baseline_dir, "packages"))
     p2 = parse_package_list(os.path.join(target_dir, "packages"))
 
@@ -76,11 +76,17 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credenti
         new_repourl = repourlfile.read().strip()
 
     for p in newpkgs:
+        if p in blacklist:
+            print "Skipping blacklisted new package %s" % p
+            continue
         rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
         arch = p2[p]['arch']
         download("%s/%s/%s" % (new_repourl, arch, rpm), credentials, new_pkgs_dir, pkg_cache_dir)
 
     for p in changedpkgs:
+        if p in blacklist:
+            print "Skipping blacklisted changed package %s" % p
+            continue
         rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
         arch = p1[p]['arch']
         download("%s/%s/%s" % (old_repourl, arch, rpm), credentials, old_pkgs_dir, pkg_cache_dir)

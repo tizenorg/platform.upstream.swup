@@ -102,7 +102,8 @@ with open(os.path.join(patch_dir, "repourl"), "w") as repourlfile:
     repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'build-id': opts.new}))
 
 
-repo_dir = create_delta_repo(tmp_dir, patch_dir, cached_pkgs_dir, tmp_dir, credentials)
+blacklist = patch['BlacklistPkgs'] if 'BlacklistPkgs' in patch else []
+repo_dir = create_delta_repo(tmp_dir, patch_dir, cached_pkgs_dir, tmp_dir, credentials, blacklist)
 
 # create updateinfo
 create_updateinfo(tmp_dir, patch)
