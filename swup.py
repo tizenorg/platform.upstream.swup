@@ -16,6 +16,8 @@ import rpm
 import subprocess as sub
 import distutils
 import fileinput
+import shlex
+import re
 
 update_repo="http://www.planux.com/updates"
 update_cache="/var/cache/updatemanager"
@@ -218,11 +220,13 @@ def prepare_update(update_data, download):
     repodir = "%s/repos.d" %update_cache
     repourl = "file://%s/download/%s/content" % (update_cache, update_id)
     if not os.path.exists("%s/%s.repo" % (repourl, update_id)):
-        r = sub.Popen("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id)).wait()
+        args = shlex.split("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
+        r = sub.Popen(args).wait()
         if r != 0:
             raise Exception("zypper add repo error: %s" % r)
     if not download:
-        r = sub.Popen("zypper --quiet --non-interactive --reposd-dir %s patch --repo %s -d" % (repodir, update_id) ).wait()
+        args = shlex.split("zypper --quiet --non-interactive --reposd-dir %s patch -d" % repodir)
+        r = sub.Popen(args).wait()
         if r not in patch_okay_codes:
             raise Exception("zypper patch error: %s" % r)
 
@@ -237,12 +241,20 @@ def install_update(update_data):
     repodir = "%s/repos.d" %update_cache
     repourl = "file://%s/download/%s/content" % (update_cache, update_id)
     if not os.path.exists("%s/%s.repo" % (repodir, update_id)):
-        r = sub.Popen("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id)).wait()
+        args = shlex.split("zypper --quiet --reposd-dir %s ar --no-gpgcheck --no-keep-packages %s %s" %(repodir, repourl, update_id))
+        r = sub.Popen(args).wait()
         if r != 0:
             raise Exception("zypper add repo error: %s" % r)
-    print "zypper -n  --reposd-dir %s patch --with-interactive  --repo %s " % (repodir, update_id)
-    sub.Popen("plymouth message --text='%s'" % u['title']).wait()
-    r = sub.Popen("zypper -n  --reposd-dir %s patch --with-interactive --repo %s " % (repodir, update_id) ).wait()
+    args = shlex.split("plymouth message --text='%s'" % u['title'])
+    sub.Popen(args).wait()
+    args = shlex.split("zypper -n  --reposd-dir %s patch --with-interactive  --repo %s " % (repodir, update_id))
+    p = sub.Popen(args, stderr=sub.PIPE, stdout=sub.PIPE)
+    r = p.wait()
+    (pout, perr) = p.communicate()
+    print(pout)
+    print(perr)
+    if re.search('Problem occured', perr):
+        raise Exception("zypper patch error: %s" % perr)
     if r not in patch_okay_codes:
         raise Exception("zypper patch error: %s" % r)
     if not os.path.exists("%s/installed" % (update_cache)):
@@ -372,5 +384,6 @@ if __name__ == '__main__':
     try:
         options = get_options()
         run_action(options)
-    except:
+    except Exception as e:
+        print(e)
         sys.exit(-1)
