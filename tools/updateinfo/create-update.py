@@ -91,15 +91,19 @@ else:
 tmp_dir = tempfile.mkdtemp(dir=".")
 
 # Get packages files
-download(config.get(opts.product, 'packages-file', False, {'build-id': opts.old}),
-         credentials, tmp_dir, packages_files_dir, "packages")
-download(config.get(opts.product, 'packages-file', False, {'build-id': opts.new}),
-         credentials, patch_dir, packages_files_dir, "packages")
+url = config.get(opts.product, 'packages-file', False, {'build-id': opts.old}).rsplit('/', 1)
+download(url[0], url[1], credentials, tmp_dir, packages_files_dir, "packages")
+url = config.get(opts.product, 'packages-file', False, {'build-id': opts.new}).rsplit('/', 1)
+download(url[0], url[1], credentials, patch_dir, packages_files_dir, "packages")
 
 with open(os.path.join(tmp_dir, "repourl"), "w") as repourlfile:
-    repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'build-id': opts.old}))
+    urls = config.get(opts.product, 'repo-url', False, {'build-id': opts.old}).split()
+    for url in urls:
+         repourlfile.write("%s\n" % url)
 with open(os.path.join(patch_dir, "repourl"), "w") as repourlfile:
-    repourlfile.write("%s\n" % config.get(opts.product, 'repo-url', False, {'build-id': opts.new}))
+    urls = config.get(opts.product, 'repo-url', False, {'build-id': opts.new}).split()
+    for url in urls:
+         repourlfile.write("%s\n" % url)
 
 
 blacklist = patch['BlacklistPkgs'] if 'BlacklistPkgs' in patch else []

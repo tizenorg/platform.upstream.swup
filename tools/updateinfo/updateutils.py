@@ -25,13 +25,26 @@ def http_get(url, credentials=(None, None)):
     html_page = urllib2.urlopen(request)
     return html_page
 
-def download(url, credentials, outdir, cachedir, target_fname=None):
-    fname = os.path.basename(url)
+def download(baseurls, path, credentials, outdir, cachedir, target_fname=None):
+    fname = os.path.basename(path)
     cached_file = os.path.join(cachedir, fname)
     if os.path.exists(cached_file):
         print "File cache hit: %s" % fname
     else:
-        ret = http_get(url, credentials)
+        if type(baseurls) == str:
+            baseurls = [baseurls]
+        for ind, baseurl in enumerate(baseurls):
+            url = "%s/%s" % (baseurl, path)
+            try:
+                ret = http_get(url, credentials)
+            except urllib2.HTTPError as err:
+                if ind < len(baseurls) - 1:
+                    print "Trying next URL, download failed with: %s" % err
+                else:
+                    raise
+            else:
+                break
+
         with open(cached_file, "w") as cache:
             cache.write(ret.read())
     if outdir:
@@ -76,9 +89,9 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir,
     new_pkgs_dir = changed_pkgs_dir
 
     with open(os.path.join(baseline_dir, "repourl"), "r") as repourlfile:
-        old_repourl = repourlfile.read().strip()
+        old_repourls = [url.strip() for url in repourlfile.readlines()]
     with open(os.path.join(target_dir, "repourl"), "r") as repourlfile:
-        new_repourl = repourlfile.read().strip()
+        new_repourls = [url.strip() for url in repourlfile.readlines()]
 
     for p in newpkgs:
         if p in blacklist:
@@ -86,7 +99,7 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir,
             continue
         rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
         arch = p2[p]['arch']
-        download("%s/%s/%s" % (new_repourl, arch, rpm), credentials, new_pkgs_dir, pkg_cache_dir)
+        download(new_repourls, "%s/%s" % (arch, rpm), credentials, new_pkgs_dir, pkg_cache_dir)
 
     for p in changedpkgs:
         if p in blacklist:
@@ -94,16 +107,16 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir,
             continue
         rpm = "%s-%s.%s.rpm" % (p, p1[p]['version'], p1[p]['arch'])
         arch = p1[p]['arch']
-        download("%s/%s/%s" % (old_repourl, arch, rpm), credentials, old_pkgs_dir, pkg_cache_dir)
+        download(old_repourls, "%s/%s" % (arch, rpm), credentials, old_pkgs_dir, pkg_cache_dir)
         rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
-        download("%s/%s/%s" % (new_repourl, arch, rpm), credentials, changed_pkgs_dir, pkg_cache_dir)
+        download(new_repourls, "%s/%s" % (arch, rpm), credentials, changed_pkgs_dir, pkg_cache_dir)
 
     for p in product_pkgs:
         if p in blacklist:
             raise Exception("Cannot blacklist a product package: %s" % p)
         rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
         arch = p2[p]['arch']
-        download("%s/%s/%s" % (new_repourl, arch, rpm), credentials, product_pkgs_dir, pkg_cache_dir)
+        download(new_repourls, "%s/%s" % (arch, rpm), credentials, product_pkgs_dir, pkg_cache_dir)
 
     products = create_product_info(product_pkgs_dir)
     products_fn = os.path.join(tmp_dir, 'products.xml')
