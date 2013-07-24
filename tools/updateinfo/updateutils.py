@@ -65,11 +65,10 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credenti
 
     old_pkgs_dir = os.path.join(tmp_dir, 'old')
     repo_dir = os.path.join(tmp_dir, 'repo')
-    new_pkgs_dir = os.path.join(repo_dir, 'new')
     changed_pkgs_dir = os.path.join(repo_dir, 'rpms')
     os.makedirs(old_pkgs_dir)
-    os.makedirs(new_pkgs_dir)
     os.makedirs(changed_pkgs_dir)
+    new_pkgs_dir = changed_pkgs_dir
 
     with open(os.path.join(baseline_dir, "repourl"), "r") as repourlfile:
         old_repourl = repourlfile.read().strip()
