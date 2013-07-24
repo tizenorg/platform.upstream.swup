@@ -44,7 +44,7 @@ def parse_package_list(filename):
         packages = {}
         pkgreader = csv.reader(package_file, delimiter=' ', quotechar='|')
         for row in pkgreader:
-            pkg = row[0].split(".")
+            pkg = row[0].rsplit(".", 1)
             if len(row)>2:
                 packages[pkg[0]] = {'scm': row[2], 'version': row[1], 'arch': pkg[1]}
             else:
