@@ -1,3 +1,9 @@
+* Fri Jul 26 2013 William Douglas <william.douglas@intel.com> accepted/tizen/20130723.174355@dcbe562
+- Account for zypper return values not matching reality
+- create-update: package blacklisting
+- tools: fix the path of new rpms in the patch
+- tools: fix parsing of the .packages file
+
 * Tue Jul 23 2013 William Douglas <william.douglas@intel.com> accepted/tizen/20130710.214628@09257d6
 - Replace os.system() calls
 - Remove bash scripting work around for update all
