@@ -21,6 +21,7 @@ import re
 
 update_repo="http://www.planux.com/updates"
 update_cache="/var/cache/updatemanager"
+zypp_cache="/var/cache/zypp"
 # zypper return values that are acceptable when running the patch command
 patch_okay_codes = [0, 102, 103]
 
@@ -287,6 +288,16 @@ def list_updates():
 
 def get_uninstalled_updates(updates):
     uninstalled = copy.deepcopy(updates)
+    to_install = []
+    to_install_fixed = []
+    if os.path.isdir("%s/install/" % update_cache):
+        to_install = os.listdir("%s/install/" % update_cache)
+    for i in to_install:
+        to_install_fixed.append(re.sub('^[0-9]*-', '', i))
+    for i in uninstalled.keys():
+        if i not in to_install_fixed:
+            uninstalled.pop(i)
+
     if os.path.isdir("%s/installed/" % update_cache):
         update_ids = sorted(uninstalled.keys(), reverse=True)
         installed = sorted(os.listdir("%s/installed/" % update_cache), reverse=True)
@@ -377,6 +388,8 @@ def run_action(options):
         updates = parse_updates()
         uninstalled_updates = get_uninstalled_updates(updates)
         for u in uninstalled_updates.values():
+            if not os.path.exists("%s/packages/%s/rpms" % (zypp_cache, u['id'])):
+                os.makedirs("%s/packages/%s/rpms" % (zypp_cache, u['id']))
             download_update(u)
             install_update(u)
 
