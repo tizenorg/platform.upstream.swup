@@ -1,3 +1,6 @@
+* Wed Jul 31 2013 William Douglas <william.douglas@intel.com> submit/tizen/20130726.201442@4bd34cd
+- (TZPC-4006) Ensure only new updates are installed
+
 * Fri Jul 26 2013 William Douglas <william.douglas@intel.com> accepted/tizen/20130723.174355@dcbe562
 - Account for zypper return values not matching reality
 - create-update: package blacklisting
