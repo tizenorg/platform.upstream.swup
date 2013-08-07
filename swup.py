@@ -250,7 +250,6 @@ def install_update(update_data):
     sub.Popen(args).wait()
     args = shlex.split("zypper -n  --reposd-dir %s patch --with-interactive  --repo %s " % (repodir, update_id))
     p = sub.Popen(args, stderr=sub.PIPE, stdout=sub.PIPE)
-    r = p.wait()
     (pout, perr) = p.communicate()
     print(pout)
     print(perr)
