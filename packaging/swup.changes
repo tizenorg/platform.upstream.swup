@@ -1,3 +1,6 @@
+* Fri Aug 09 2013 William Douglas <william.douglas@intel.com> submit/tizen/20130731.210552@c6ea4f4
+- (TZPC-3196) Fix bug when filling subprocess pipe
+
 * Wed Jul 31 2013 William Douglas <william.douglas@intel.com> submit/tizen/20130726.201442@4bd34cd
 - (TZPC-4006) Ensure only new updates are installed
 
