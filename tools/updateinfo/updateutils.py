@@ -3,6 +3,7 @@ import urllib2
 import os
 import re, base64
 import shutil
+import tempfile
 import yaml
 from xml.dom import minidom
 import rpm
@@ -12,6 +13,7 @@ import gzip
 import zipfile
 import hashlib
 import fileinput
+import subprocess
 
 
 def http_get(url, credentials=(None, None)):
@@ -51,7 +53,8 @@ def parse_package_list(filename):
                 packages[pkg[0]] = {'scm': None, 'version': row[1], 'arch': pkg[1]}
     return packages
 
-def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credentials, blacklist):
+def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir,
+                      credentials, blacklist, product_pkgs):
     p1 = parse_package_list(os.path.join(baseline_dir, "packages"))
     p2 = parse_package_list(os.path.join(target_dir, "packages"))
 
@@ -66,8 +69,10 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credenti
     old_pkgs_dir = os.path.join(tmp_dir, 'old')
     repo_dir = os.path.join(tmp_dir, 'repo')
     changed_pkgs_dir = os.path.join(repo_dir, 'rpms')
+    product_pkgs_dir = os.path.join(tmp_dir, 'products')
     os.makedirs(old_pkgs_dir)
     os.makedirs(changed_pkgs_dir)
+    os.makedirs(product_pkgs_dir)
     new_pkgs_dir = changed_pkgs_dir
 
     with open(os.path.join(baseline_dir, "repourl"), "r") as repourlfile:
@@ -93,7 +98,20 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credenti
         rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
         download("%s/%s/%s" % (new_repourl, arch, rpm), credentials, changed_pkgs_dir, pkg_cache_dir)
 
+    for p in product_pkgs:
+        if p in blacklist:
+            raise Exception("Cannot blacklist a product package: %s" % p)
+        rpm = "%s-%s.%s.rpm" % (p, p2[p]['version'], p2[p]['arch'])
+        arch = p2[p]['arch']
+        download("%s/%s/%s" % (new_repourl, arch, rpm), credentials, product_pkgs_dir, pkg_cache_dir)
+
+    products = create_product_info(product_pkgs_dir)
+    products_fn = os.path.join(tmp_dir, 'products.xml')
+    with open(products_fn, 'w') as products_fd:
+        products_fd.write(products)
+
     os.system("createrepo --deltas --oldpackagedirs=%s %s" % (old_pkgs_dir, repo_dir))
+    os.system("modifyrepo %s %s/repodata" % (products_fn, repo_dir))
 
     # Clean up the rpms dir: move all packages for which delta was generated
     nozip_pkgs_dir = os.path.join(repo_dir, 'nozip')
@@ -107,6 +125,29 @@ def create_delta_repo(baseline_dir, target_dir, pkg_cache_dir, tmp_dir, credenti
             print "Preserving %s, no deltarpm (%s) was found" % (rpm, drpm)
 
     return repo_dir
+
+def create_product_info(directory):
+    """Go through packages in a directory and extract zypper product info"""
+    tmpdir = tempfile.mkdtemp(dir=directory)
+    try:
+        # Extract the product files in all rpm packages in the given dir
+        for pkg in glob.glob('%s/*.rpm' % directory):
+            proc1 = subprocess.Popen(['rpm2cpio', pkg], stdout=subprocess.PIPE)
+            proc2 = subprocess.Popen(['cpio', '-id', './etc/products.d/*.prod'],
+                    stdin=proc1.stdout, cwd=tmpdir)
+            proc2.communicate()
+        # New document for listing all products
+        doc = minidom.Document()
+        root = doc.appendChild(doc.createElement('products'))
+
+        # Read all the product files and append data to our product database
+        for prod_file in glob.glob('%s/etc/products.d/*.prod' % tmpdir):
+            tmp_doc = minidom.parse(prod_file)
+            for product in tmp_doc.getElementsByTagName('product'):
+                root.appendChild(product)
+        return doc.toxml('UTF-8')
+    finally:
+        shutil.rmtree(tmpdir)
 
 def get_checksum(fileName, checksum_type="sha256", excludeLine="", includeLine=""):
     """Compute sha256 hash of the specified file"""

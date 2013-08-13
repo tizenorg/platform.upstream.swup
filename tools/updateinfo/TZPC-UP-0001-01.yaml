@@ -11,3 +11,5 @@ Status: stable
 ID: TZPC-UP-0001-01
 BlacklistPkgs:
     - broken-pkg
+ProductPkgs:
+    - tizen-release
